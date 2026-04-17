@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' | ' + ${businessName}">Prepaid Credit Tracker</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<aside class="sidebar" th:fragment="sidebar">
+    <div class="mobile-header">
+        <div class="brand" th:text="${businessName}">Prepaid Credit Tracker</div>
+        <button type="button" class="menu-toggle" aria-label="Open menu" aria-expanded="false" data-menu-toggle>
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+    <div class="brand desktop-brand" th:text="${businessName}">Prepaid Credit Tracker</div>
+    <nav class="nav">
+        <a th:href="@{/}">Dashboard</a>
+        <a th:href="@{/customers/new}">Enroll Customer</a>
+        <a th:href="@{/customers/manage}">Credits</a>
+        <a th:href="@{/products}">Products</a>
+        <a th:href="@{/reports}">Reports</a>
+        <a th:href="@{/admins}">Admins</a>
+        <a th:href="@{/settings}">Settings</a>
+    </nav>
+</aside>
+</html>

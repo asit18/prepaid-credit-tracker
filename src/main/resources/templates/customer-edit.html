@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Edit Customer')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="content">
+        <h1>Edit Customer</h1>
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
+        <form class="card" th:action="@{/customers/{id}(id=${customer.id})}" method="post">
+            <label>Name</label><input name="name" th:value="${customer.name}" required>
+            <label>Email</label><input name="email" type="email" th:value="${customer.email}">
+            <label>Phone</label><input name="phone" th:value="${customer.phone}" required>
+            <label>Address</label><textarea name="address" th:text="${customer.address}"></textarea>
+            <h2>Additional Contacts</h2>
+            <div data-contacts>
+                <div class="inline card" th:each="contact : ${customer.contacts}">
+                    <div><label>Name</label><input name="contactName" th:value="${contact.name}" required></div>
+                    <div><label>Email</label><input name="contactEmail" type="email" th:value="${contact.email}"></div>
+                    <div><label>Phone</label><input name="contactPhone" th:value="${contact.phone}"></div>
+                    <div><label>Relationship</label><input name="contactRelationship" th:value="${contact.relationship}"></div>
+                    <button type="button" class="red small" onclick="this.closest('.inline').remove()">Remove</button>
+                </div>
+            </div>
+            <button type="button" class="secondary" onclick="addContactRow()">Add Contact</button>
+            <button type="submit">Save Customer <span class="spinner"></span></button>
+        </form>
+    </main>
+</div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

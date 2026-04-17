@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Credit Management')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="content">
+        <h1>Customer Lookup & Credit Management</h1>
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
+        <section class="card">
+            <label>Search customer</label>
+            <input data-search-customers placeholder="Type a customer name">
+            <div class="mobile-stack" style="margin-top:12px">
+                <a data-customer-option th:each="c : ${customers}" class="btn secondary" th:href="@{/customers/manage(customerId=${c.id})}" th:text="${c.name}"></a>
+            </div>
+        </section>
+        <div th:if="${customer != null}">
+            <section class="card" style="margin-top:18px">
+                <h2 th:text="${customer.name}">Customer</h2>
+                <p class="muted" th:text="${(customer.email ?: 'No email') + ' | ' + (customer.phone ?: 'No phone')}"></p>
+                <p th:text="${customer.address ?: 'No address'}"></p>
+                <p th:if="${#lists.isEmpty(customer.contacts)}" class="empty">No contacts yet.</p>
+                <ul><li th:each="contact : ${customer.contacts}" th:text="${contact.name + ' ' + (contact.phone ?: '') + ' ' + (contact.relationship ?: '')}"></li></ul>
+            </section>
+            <section class="card" style="margin-top:18px">
+                <h2>Credit Summary</h2>
+                <div class="balance-summary">
+                    <div th:each="b : ${balances}" th:class="${b.balance.compareTo(T(java.math.BigDecimal).TEN) <= 0 ? 'balance-chip balance-warning' : 'balance-chip'}">
+                        <strong th:text="${b.productName}"></strong>
+                        <span th:text="${@appDateTime.formatUnits(b.balance) + ' ' + b.unitLabel}"></span>
+                    </div>
+                </div>
+
+                <div class="credit-control">
+                    <label>Product</label>
+                    <select data-credit-product>
+                        <option th:each="b : ${balances}"
+                                th:value="${b.productId}"
+                                th:data-price="${@appDateTime.formatPrice(b.currentPrice)}"
+                                th:data-balance="${@appDateTime.formatUnits(b.balance)}"
+                                th:data-unit-label="${b.unitLabel}"
+                                th:text="${b.productName + ' - ' + @appDateTime.formatUnits(b.balance) + ' ' + b.unitLabel}">
+                        </option>
+                    </select>
+
+                    <div class="action-radios" role="radiogroup" aria-label="Credit action">
+                        <label><input type="radio" name="creditAction" value="CONSUMPTION" checked> Record Consumption</label>
+                        <label><input type="radio" name="creditAction" value="PURCHASE"> Add Credits</label>
+                        <label><input type="radio" name="creditAction" value="ADJUSTMENT"> Adjust Credits</label>
+                    </div>
+
+                    <div class="action-panel" data-action-panel="CONSUMPTION">
+                        <form th:action="@{/customers/{id}/transactions(id=${customer.id})}" method="post" data-confirm="Confirm this consumption?">
+                            <input type="hidden" name="productId" data-selected-product-id>
+                            <input type="hidden" name="transactionType" value="CONSUMPTION">
+                            <label>Whole units consumed</label><input name="units" type="number" min="1" step="1" data-consumption-units required>
+                            <p class="muted" data-balance-limit></p>
+                            <label>Notes</label><input name="notes">
+                            <button class="small">Confirm <span class="spinner"></span></button>
+                        </form>
+                    </div>
+
+                    <div class="action-panel hidden" data-action-panel="PURCHASE">
+                        <form th:action="@{/customers/{id}/transactions(id=${customer.id})}" method="post" data-confirm="Confirm this payment credit?">
+                            <input type="hidden" name="productId" data-selected-product-id>
+                            <input type="hidden" name="transactionType" value="PURCHASE">
+                            <label>Amount paid</label><input name="amountPaid" type="number" min="0.01" step="0.01" required>
+                            <p class="muted">Current price: <span data-current-price></span> per unit</p>
+                            <label>Notes</label><input name="notes">
+                            <button class="small">Confirm <span class="spinner"></span></button>
+                        </form>
+                    </div>
+
+                    <div class="action-panel hidden" data-action-panel="ADJUSTMENT">
+                        <form th:action="@{/customers/{id}/transactions(id=${customer.id})}" method="post" data-confirm="Confirm this credit adjustment?">
+                            <input type="hidden" name="productId" data-selected-product-id>
+                            <input type="hidden" name="transactionType" value="ADJUSTMENT">
+                            <label>Whole units signed</label><input name="units" type="number" step="1" data-adjustment-units required>
+                            <p class="muted" data-adjustment-limit></p>
+                            <label>Reason</label><input name="notes" required>
+                            <button class="small">Confirm <span class="spinner"></span></button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+            <section class="card" style="margin-top:18px">
+                <h2>Transaction History</h2>
+                <p th:if="${#lists.isEmpty(transactions)}" class="empty">No transactions yet. Add the first payment above.</p>
+                <div class="table-wrap" th:if="${!#lists.isEmpty(transactions)}"><table>
+                    <tr><th>Date</th><th>Product</th><th>Type</th><th>Units</th><th>Amount</th><th>Created By</th></tr>
+                    <tr th:each="tx : ${transactions}">
+                        <td th:text="${@appDateTime.format(tx.transactionDate)}"></td><td th:text="${tx.product.name}"></td><td th:text="${tx.transactionType}"></td>
+                        <td th:class="${tx.units.signum() < 0 ? 'negative' : 'positive'}" th:text="${@appDateTime.formatUnits(tx.units)}"></td>
+                        <td th:text="${tx.amountPaid ?: '-'}"></td><td th:text="${tx.createdBy}"></td>
+                    </tr>
+                </table></div>
+            </section>
+        </div>
+    </main>
+</div>
+<div th:if="${toast}" class="toast" th:text="${toast}"></div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+services:
+  prepaid-credit-tracker:
+    image: prepaid-credit-tracker:latest
+    build: .
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${APP_PORT:-8090}:8080"
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      APP_AUTH_GOOGLE_ENABLED: ${APP_AUTH_GOOGLE_ENABLED:-false}
+      APP_LOCAL_ADMIN_EMAIL: ${APP_LOCAL_ADMIN_EMAIL}
+      APP_LOCAL_ADMIN_PASSWORD: ${APP_LOCAL_ADMIN_PASSWORD}
+      APP_ADMIN_SEED_EMAIL: ${APP_ADMIN_SEED_EMAIL}
+      APP_TIME_ZONE: ${APP_TIME_ZONE:-America/Los_Angeles}

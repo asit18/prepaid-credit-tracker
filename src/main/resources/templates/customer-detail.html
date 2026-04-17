@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Customer Detail')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="content">
+        <h1 th:text="${customer.name}">Customer</h1>
+        <section class="card">
+            <p th:if="${!customer.active}" class="alert error">This customer is inactive.</p>
+            <p><strong>Email:</strong> <span th:text="${customer.email ?: 'Not provided'}"></span></p>
+            <p><strong>Phone:</strong> <span th:text="${customer.phone ?: 'Not provided'}"></span></p>
+            <p><strong>Address:</strong> <span th:text="${customer.address ?: 'Not provided'}"></span></p>
+            <p>
+                <a class="btn secondary" th:href="@{/customers/{id}/edit(id=${customer.id})}">Edit Customer</a>
+            </p>
+            <form th:if="${customer.active}" th:action="@{/customers/{id}/delete(id=${customer.id})}" method="post" data-confirm="Deactivate this customer? Transaction history will remain available.">
+                <button class="red small">Delete Customer</button>
+            </form>
+            <h3>Contacts</h3>
+            <p th:if="${#lists.isEmpty(customer.contacts)}" class="muted">No contacts added.</p>
+            <ul><li th:each="contact : ${customer.contacts}" th:text="${contact.name + ' - ' + (contact.relationship ?: '')}"></li></ul>
+        </section>
+        <section class="card" style="margin-top:18px">
+            <h2>Balances</h2>
+            <div class="table-wrap"><table><tr><th>Product</th><th>Balance</th><th>Last Transaction</th></tr>
+                <tr th:each="b : ${balances}"><td th:text="${b.productName}"></td><td th:text="${@appDateTime.formatUnits(b.balance) + ' ' + b.unitLabel}"></td><td th:text="${@appDateTime.format(b.lastTransactionDate)}"></td></tr>
+            </table></div>
+            <p><a class="btn" th:href="@{/customers/manage(customerId=${customer.id})}">Manage Credits</a></p>
+        </section>
+    </main>
+</div>
+<div th:if="${toast}" class="toast" th:text="${toast}"></div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Products')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="content">
+        <h1>Product Management</h1>
+        <section class="card">
+            <h2>Add Product</h2>
+            <form th:action="@{/products}" method="post" class="inline">
+                <div><label>Name</label><input name="name" required></div>
+                <div><label>Unit Label</label><input name="unitLabel" placeholder="units, hours, sessions" required></div>
+                <div><label>Initial Price</label><input name="pricePerUnit" type="number" min="0.01" step="0.01" required></div>
+                <div><label>Effective Date</label><input name="effectiveFrom" type="date" required></div>
+                <div><label>Description</label><input name="description"></div>
+                <div><label>Active</label><select name="active"><option value="true">Active</option><option value="false">Inactive</option></select></div>
+                <button class="green">Add <span class="spinner"></span></button>
+            </form>
+        </section>
+        <section class="card" style="margin-top:18px">
+            <h2>Products</h2>
+            <p th:if="${#lists.isEmpty(products)}" class="empty">No products yet. Add the first product above.</p>
+            <div class="table-wrap" th:if="${!#lists.isEmpty(products)}"><table>
+                <tr><th>Name</th><th>Unit</th><th>Current Price</th><th>Status</th><th>Actions</th></tr>
+                <tr th:each="product : ${products}">
+                    <td>
+                        <strong th:text="${product.name}"></strong>
+                        <div class="muted" th:text="${product.description}"></div>
+                    </td>
+                    <td th:text="${product.unitLabel}"></td>
+                    <td th:text="${@appDateTime.formatPrice(@productService.currentPriceValue(product))}"></td>
+                    <td><span class="pill" th:text="${product.active ? 'Active' : 'Inactive'}"></span></td>
+                    <td>
+                        <details>
+                            <summary>Edit Product</summary>
+                            <form th:action="@{/products/{id}(id=${product.id})}" method="post" class="mobile-stack">
+                                <label>Name</label><input name="name" th:value="${product.name}" required>
+                                <label>Description</label><textarea name="description" th:text="${product.description}"></textarea>
+                                <label>Unit Label</label><input name="unitLabel" th:value="${product.unitLabel}" required>
+                                <label>Status</label><select name="active"><option value="true" th:selected="${product.active}">Active</option><option value="false" th:selected="${!product.active}">Inactive</option></select>
+                                <button class="small">Save <span class="spinner"></span></button>
+                            </form>
+                        </details>
+                        <form th:if="${product.active}" th:action="@{/products/{id}/delete(id=${product.id})}" method="post" data-confirm="Deactivate this product? Transaction history will remain available.">
+                            <button class="red small">Delete Product</button>
+                        </form>
+                        <details>
+                            <summary>Update Price</summary>
+                            <form th:action="@{/products/{id}/prices(id=${product.id})}" method="post" data-confirm="Confirm this product price update?">
+                                <label>New Price</label><input name="pricePerUnit" type="number" min="0.01" step="0.01" required>
+                                <label>Effective Date</label><input name="effectiveFrom" type="date" required>
+                                <button class="green small">Save Price <span class="spinner"></span></button>
+                            </form>
+                        </details>
+                        <details>
+                            <summary>Price History</summary>
+                            <div class="table-wrap"><table>
+                                <tr><th>Effective From</th><th>Price</th><th>Created By</th></tr>
+                                <tr th:each="price : ${@productService.priceHistory(product.id)}">
+                                    <td th:text="${@appDateTime.formatDate(price.effectiveFrom)}"></td><td th:text="${@appDateTime.formatPrice(price.pricePerUnit)}"></td><td th:text="${price.createdBy}"></td>
+                                </tr>
+                            </table></div>
+                        </details>
+                    </td>
+                </tr>
+            </table></div>
+        </section>
+    </main>
+</div>
+<div th:if="${toast}" class="toast" th:text="${toast}"></div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'Sign in | ' + ${businessName}">Sign in | Prepaid Credit Tracker</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="login-page">
+<main class="login-card">
+    <h1 th:text="${businessName}">Prepaid Credit Tracker</h1>
+    <p class="muted">Sign in to manage prepaid balances, products, and reports.</p>
+    <div th:if="${param.error}" class="empty">The email or password was not accepted.</div>
+    <div th:if="${param.logout}" class="empty">You have been signed out.</div>
+
+    <a th:if="${googleEnabled}" class="btn" th:href="@{/oauth2/authorization/google}">Sign in with Google</a>
+
+    <form th:if="${!googleEnabled}" th:action="@{/login}" method="post">
+        <label>Email</label>
+        <input name="username" type="email" required>
+        <label>Password</label>
+        <input name="password" type="password" required>
+        <button type="submit">Sign in</button>
+    </form>
+</main>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

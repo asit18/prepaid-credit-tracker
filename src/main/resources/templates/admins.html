@@ -11,21 +11,33 @@
             <form th:action="@{/admins}" method="post" class="inline">
                 <div><label>Email</label><input name="email" type="email" required></div>
                 <div><label>Display Name</label><input name="displayName"></div>
+                <div><label>Role</label><select name="role"><option th:each="role : ${roles}" th:value="${role}" th:text="${role}"></option></select></div>
                 <button class="green">Add Admin <span class="spinner"></span></button>
             </form>
         </section>
         <section class="card" style="margin-top:18px">
             <h2>Admins</h2>
             <div class="table-wrap"><table>
-                <tr><th>Email</th><th>Display Name</th><th>Status</th><th>Action</th></tr>
+                <tr><th>Email</th><th>Display Name</th><th>Role</th><th>Status</th><th>Action</th></tr>
                 <tr th:each="admin : ${admins}">
                     <td th:text="${admin.email}"></td>
                     <td th:text="${admin.displayName}"></td>
+                    <td>
+                        <form th:action="@{/admins/{id}/role(id=${admin.id})}" method="post" class="inline">
+                            <select name="role">
+                                <option th:each="role : ${roles}" th:value="${role}" th:text="${role}" th:selected="${admin.role == role}"></option>
+                            </select>
+                            <button class="small">Save</button>
+                        </form>
+                    </td>
                     <td><span class="pill" th:text="${admin.active ? 'Active' : 'Inactive'}"></span></td>
                     <td>
                         <form th:action="@{/admins/{id}/active(id=${admin.id})}" method="post" data-confirm="Confirm this admin status change?">
                             <input type="hidden" name="active" th:value="${!admin.active}">
                             <button class="small" th:classappend="${admin.active ? ' red' : ' green'}" th:text="${admin.active ? 'Deactivate' : 'Reactivate'}"></button>
+                        </form>
+                        <form th:action="@{/admins/{id}/password-reset(id=${admin.id})}" method="post" data-confirm="Trigger password reset email for this admin?">
+                            <button class="small secondary">Change Password</button>
                         </form>
                     </td>
                 </tr>

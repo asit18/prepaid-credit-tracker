@@ -98,4 +98,9 @@ public class CreditService {
     public Page<CreditTransaction> history(Long customerId, Pageable pageable) {
         return transactionRepository.findByCustomerOrderByTransactionDateDesc(customerService.get(customerId), pageable);
     }
+
+    @Transactional(readOnly = true)
+    public CreditTransaction lastTransaction(Long customerId) {
+        return transactionRepository.findTopByCustomerOrderByTransactionDateDesc(customerService.get(customerId));
+    }
 }

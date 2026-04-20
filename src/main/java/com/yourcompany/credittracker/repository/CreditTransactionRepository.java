@@ -19,6 +19,8 @@ public interface CreditTransactionRepository extends JpaRepository<CreditTransac
     @EntityGraph(attributePaths = {"product", "customer"})
     Page<CreditTransaction> findByCustomerOrderByTransactionDateDesc(Customer customer, Pageable pageable);
 
+    CreditTransaction findTopByCustomerOrderByTransactionDateDesc(Customer customer);
+
     @EntityGraph(attributePaths = {"product", "customer"})
     List<CreditTransaction> findAllByOrderByTransactionDateDesc();
 

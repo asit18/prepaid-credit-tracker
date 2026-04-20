@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Security')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="content">
+        <h1>Security</h1>
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
+        <section class="card">
+            <h2>Multi-Factor Authentication</h2>
+            <p class="muted">Use Google Authenticator, Microsoft Authenticator, Authy, 1Password, or another TOTP app.</p>
+            <p><strong>Status:</strong> <span th:text="${admin.mfaEnabled ? 'Enabled' : 'Not enabled'}">Not enabled</span></p>
+
+            <div th:if="${!admin.mfaEnabled && admin.mfaSetupPending && mfaQrCode == null}" class="alert error">
+                MFA setup was started earlier, but the QR code is only shown during setup. Start setup again to generate a fresh QR code.
+            </div>
+
+            <form th:if="${!admin.mfaEnabled && mfaQrCode == null}"
+                  th:action="@{/settings/security/mfa/setup}" method="post">
+                <button type="submit"><span th:text="${admin.mfaSetupPending ? 'Restart MFA Setup' : 'Set Up MFA'}">Set Up MFA</span> <span class="spinner"></span></button>
+            </form>
+
+            <div th:if="${mfaQrCode != null || admin.mfaSetupPending}" class="mfa-setup">
+                <p>Scan this QR code, then enter the current 6-digit code.</p>
+                <img th:if="${mfaQrCode != null}" class="qr-code" th:src="${'data:image/png;base64,' + mfaQrCode}" alt="MFA QR code">
+                <label th:if="${mfaSecret != null}">Manual setup key</label>
+                <input th:if="${mfaSecret != null}" th:value="${mfaSecret}" readonly>
+                <form th:action="@{/settings/security/mfa/confirm}" method="post">
+                    <label>Authenticator Code</label>
+                    <input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required>
+                    <button type="submit" class="green">Confirm MFA <span class="spinner"></span></button>
+                </form>
+            </div>
+
+            <div th:if="${backupCodes != null}" class="backup-codes">
+                <h2>Backup Codes</h2>
+                <p class="alert error">Save these now. They will not be shown again.</p>
+                <div class="code-grid">
+                    <code th:each="backupCode : ${backupCodes}" th:text="${backupCode}"></code>
+                </div>
+            </div>
+
+            <form th:if="${admin.mfaEnabled}" th:action="@{/settings/security/mfa/disable}" method="post"
+                  data-confirm="Disable MFA for your account?">
+                <h2>Disable MFA</h2>
+                <label>Password</label>
+                <input name="password" type="password" required>
+                <label>Current Authenticator Code</label>
+                <input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required>
+                <button type="submit" class="red">Disable MFA <span class="spinner"></span></button>
+            </form>
+        </section>
+    </main>
+</div>
+<div th:if="${toast}" class="toast" th:text="${toast}"></div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

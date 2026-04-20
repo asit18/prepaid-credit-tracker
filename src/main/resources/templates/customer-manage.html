@@ -16,7 +16,6 @@
                 </div>
             </form>
             <div class="typeahead-results mobile-stack" data-customer-results>
-                <p th:if="${customer != null}" class="empty">Customer selected. Search again to choose another customer.</p>
                 <p th:if="${customer == null && (search == null || #strings.isEmpty(search))}" class="empty">Start typing a customer name or phone number.</p>
                 <p th:if="${search != null && !#strings.isEmpty(search) && #lists.isEmpty(customers)}" class="empty">No matching customers found.</p>
                 <a data-customer-option th:each="c : ${customers}" class="customer-result" th:href="@{/customers/manage(customerId=${c.id})}">
@@ -28,10 +27,18 @@
         <div th:if="${customer != null}">
             <section class="card" style="margin-top:18px">
                 <div class="section-heading">
-                    <h2 th:text="${customer.name}">Customer</h2>
-                    <a class="btn secondary small" th:href="@{/customers/{id}/edit(id=${customer.id})}">Edit Customer</a>
+                    <div>
+                        <h2><a th:href="@{/customers/{id}/edit(id=${customer.id})}" th:text="${customer.name}">Customer</a></h2>
+                        <p class="muted" th:text="${lastVisitDate == null ? 'Last visit: No visits yet' : 'Last visit: ' + @appDateTime.format(lastVisitDate)}"></p>
+                    </div>
                 </div>
-                <p class="muted" th:text="${(customer.email ?: 'No email') + ' | ' + (customer.phone ?: 'No phone')}"></p>
+                <p class="muted">
+                    <span th:text="${customer.phone ?: 'No phone'}"></span>
+                    <span> | </span>
+                    <span th:text="${customer.email ?: 'No email'}"></span>
+                    <span> | </span>
+                    <span th:text="${#lists.isEmpty(customer.contacts) ? 'No contact' : customer.contacts[0].name}"></span>
+                </p>
                 <p th:if="${#lists.isEmpty(customer.contacts)}" class="empty">No contacts yet.</p>
                 <ul><li th:each="contact : ${customer.contacts}" th:text="${contact.name + ' ' + (contact.phone ?: '') + ' ' + (contact.relationship ?: '')}"></li></ul>
             </section>
@@ -41,6 +48,7 @@
                     <div th:each="b : ${balances}" th:class="${b.balance.compareTo(T(java.math.BigDecimal).TEN) <= 0 ? 'balance-chip balance-warning' : 'balance-chip'}">
                         <strong th:text="${b.productName}"></strong>
                         <span th:text="${@appDateTime.formatUnits(b.balance) + ' ' + b.unitLabel}"></span>
+                        <small th:text="${'Unit: ' + b.unitLabel}"></small>
                     </div>
                 </div>
 

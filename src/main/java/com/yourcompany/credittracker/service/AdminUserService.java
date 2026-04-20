@@ -1,19 +1,23 @@
 package com.yourcompany.credittracker.service;
 
 import com.yourcompany.credittracker.exception.NotFoundException;
+import com.yourcompany.credittracker.model.AdminRole;
 import com.yourcompany.credittracker.model.AdminUser;
 import com.yourcompany.credittracker.repository.AdminUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class AdminUserService {
     private final AdminUserRepository adminUserRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${app.admin.seed-email:admin@example.com}")
     private String seedEmail;
@@ -21,13 +25,20 @@ public class AdminUserService {
     @Value("${app.local-admin.email:admin@example.com}")
     private String localAdminEmail;
 
+    @Value("${app.local-admin.password:}")
+    private String localAdminPassword;
+
     @Transactional
     public void bootstrapAdmins() {
         if (adminUserRepository.count() == 0) {
             addAdmin(seedEmail, "Seed Admin");
         }
-        if (!adminUserRepository.existsByEmailIgnoreCase(localAdminEmail)) {
-            addAdmin(localAdminEmail, "Local Admin");
+        if (localAdminEmail != null && !localAdminEmail.isBlank()) {
+            AdminUser localAdmin = addAdmin(localAdminEmail, "Local Admin");
+            localAdmin.setRole(AdminRole.OWNER);
+            if (localAdminPassword != null && !localAdminPassword.isBlank()) {
+                localAdmin.setPasswordHash(passwordEncoder.encode(localAdminPassword));
+            }
         }
     }
 
@@ -39,12 +50,28 @@ public class AdminUserService {
     }
 
     @Transactional(readOnly = true)
+    public Optional<AdminUser> findActiveByEmail(String email) {
+        return email == null ? Optional.empty() : adminUserRepository.findByEmailIgnoreCase(email)
+                .filter(AdminUser::isActive);
+    }
+
+    @Transactional(readOnly = true)
     public List<AdminUser> all() {
         return adminUserRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
+    public List<AdminUser> activeOwners() {
+        return adminUserRepository.findByRoleAndActiveTrue(AdminRole.OWNER);
+    }
+
     @Transactional
     public AdminUser addAdmin(String email, String displayName) {
+        return addAdmin(email, displayName, AdminRole.EMPLOYEE);
+    }
+
+    @Transactional
+    public AdminUser addAdmin(String email, String displayName, AdminRole role) {
         String normalized = email == null ? "" : email.trim().toLowerCase();
         if (normalized.isBlank()) {
             throw new IllegalArgumentException("Email is required");
@@ -53,9 +80,18 @@ public class AdminUserService {
             AdminUser user = new AdminUser();
             user.setEmail(normalized);
             user.setDisplayName(displayName == null || displayName.isBlank() ? normalized : displayName);
+            user.setRole(role == null ? AdminRole.EMPLOYEE : role);
             user.setActive(true);
             return adminUserRepository.save(user);
         });
+    }
+
+    @Transactional
+    public AdminUser updateRole(Long id, AdminRole role) {
+        AdminUser user = adminUserRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Admin user not found"));
+        user.setRole(role == null ? AdminRole.EMPLOYEE : role);
+        return user;
     }
 
     @Transactional

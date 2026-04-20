@@ -2,9 +2,49 @@ CREATE TABLE IF NOT EXISTS admin_users (
     id BIGSERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     display_name VARCHAR(255),
+    role VARCHAR(32) NOT NULL DEFAULT 'EMPLOYEE',
+    password_hash VARCHAR(255),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    mfa_secret TEXT,
+    mfa_setup_pending BOOLEAN NOT NULL DEFAULT FALSE,
+    backup_codes TEXT,
+    last_used_totp_step BIGINT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS role VARCHAR(32) NOT NULL DEFAULT 'EMPLOYEE';
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS mfa_secret TEXT;
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS mfa_setup_pending BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS backup_codes TEXT;
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS last_used_totp_step BIGINT;
+CREATE INDEX IF NOT EXISTS idx_admin_users_mfa_enabled ON admin_users (mfa_enabled);
+UPDATE admin_users SET role = 'OWNER' WHERE role IS NULL OR email = 'admin@example.com';
+
+CREATE TABLE IF NOT EXISTS audit_events (
+    id BIGSERIAL PRIMARY KEY,
+    event_type VARCHAR(120) NOT NULL,
+    actor_email VARCHAR(255) NOT NULL,
+    target_email VARCHAR(255),
+    details TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_audit_events_created_at ON audit_events (created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_events_event_type ON audit_events (event_type);
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    admin_user_id BIGINT NOT NULL,
+    token_hash VARCHAR(255) NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL,
+    used_at TIMESTAMP,
+    created_by VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_password_reset_admin FOREIGN KEY (admin_user_id) REFERENCES admin_users(id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_password_reset_token_hash ON password_reset_tokens (token_hash);
+CREATE INDEX IF NOT EXISTS idx_password_reset_admin ON password_reset_tokens (admin_user_id);
 
 CREATE TABLE IF NOT EXISTS app_settings (
     setting_key VARCHAR(120) PRIMARY KEY,

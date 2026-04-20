@@ -167,9 +167,8 @@ th { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spa
     margin-bottom: 16px;
 }
 .balance-chip {
-    display: flex;
+    display: grid;
     gap: 8px;
-    align-items: center;
     padding: 10px 12px;
     border-radius: 8px;
     background: #f8fafc;
@@ -177,6 +176,10 @@ th { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spa
 }
 .balance-chip span {
     font-weight: 800;
+}
+.balance-chip small {
+    color: var(--muted);
+    font-weight: 700;
 }
 .balance-warning {
     background: #fff4cc;
@@ -227,6 +230,29 @@ th { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spa
     box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
     z-index: 10;
 }
+.qr-code {
+    width: 220px;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 12px 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+.code-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+}
+.code-grid code {
+    display: block;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #f8fafc;
+    font-weight: 800;
+    text-align: center;
+}
 .hidden { display: none !important; }
 .spinner {
     display: none;
@@ -256,6 +282,13 @@ th { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spa
 details { margin: 10px 0; }
 summary { cursor: pointer; font-weight: 700; padding: 8px 0; }
 .mobile-stack { display: grid; gap: 12px; }
+.pagination {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 14px;
+}
 
 @media (max-width: 860px) {
     body { padding-top: 64px; }

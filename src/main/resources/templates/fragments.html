@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:fragment="head(title)">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,10 +20,12 @@
         <a th:href="@{/}">Dashboard</a>
         <a th:href="@{/customers/new}">Add Customer</a>
         <a th:href="@{/customers/manage}">Credits</a>
-        <a th:href="@{/products}">Products</a>
-        <a th:href="@{/reports}">Reports</a>
-        <a th:href="@{/admins}">Admins</a>
-        <a th:href="@{/settings}">Settings</a>
+        <a sec:authorize="hasRole('OWNER')" th:href="@{/products}">Products</a>
+        <a th:href="@{/reports}">Transaction History</a>
+        <a sec:authorize="hasRole('OWNER')" th:href="@{/admins}">Admins</a>
+        <a sec:authorize="hasRole('OWNER')" th:href="@{/settings}">Settings</a>
+        <a sec:authorize="hasRole('OWNER')" th:href="@{/settings/security}">Security</a>
+        <a th:href="@{/logout}">Sign Out</a>
     </nav>
 </aside>
 </html>

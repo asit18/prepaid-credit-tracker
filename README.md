@@ -43,6 +43,35 @@ APP_AUTH_GOOGLE_ENABLED=false
 
 When Google auth is disabled, sign in with the local admin email and password from `.env`.
 
+## MFA And API Login
+
+The app supports Google Authenticator compatible MFA using RFC 6238 TOTP. This is not Google OAuth. Any compatible authenticator app can scan the setup QR code.
+
+Required secrets for API JWT login and MFA secret encryption:
+
+```properties
+APP_JWT_SECRET=replace-with-at-least-32-random-bytes
+APP_AES_KEY_BASE64=replace-with-base64-encoded-32-byte-key
+APP_MFA_ISSUER=Prepaid Credit Tracker
+```
+
+Generate the AES key with:
+
+```bash
+openssl rand -base64 32
+```
+
+MFA endpoints:
+
+- `POST /api/auth/login`
+- `POST /api/auth/mfa/verify`
+- `POST /api/mfa/setup`
+- `POST /api/mfa/confirm`
+- `POST /api/mfa/recovery`
+- `POST /api/mfa/disable`
+
+TOTP uses 6 digits, 30 second steps, HMAC-SHA1, and a one-step clock drift window. MFA secrets are encrypted at rest with AES-GCM, backup codes are one-time use and stored hashed, and repeated invalid MFA attempts are rate limited.
+
 ## PostgreSQL Setup
 
 Create the database and user with environment variables instead of hardcoding credentials:

@@ -122,6 +122,28 @@ http://localhost:8090
 
 For Linux servers, replace the database host in `SPRING_DATASOURCE_URL` inside `.env` with the PostgreSQL server hostname or IP address.
 
+## DigitalOcean Deployment
+
+DigitalOcean production templates live in:
+
+```text
+deploy/digitalocean/
+```
+
+The deployment track is documented in:
+
+```text
+DIGITALOCEAN_DEPLOYMENT_TRACK.md
+```
+
+The public repo publishes Docker images to GitHub Container Registry using:
+
+```text
+.github/workflows/docker-publish.yml
+```
+
+Use the private `noelani-deployment` repo pattern from the deployment track for real business domains, server IPs, SSH keys, and production `.env` files.
+
 ## Google OAuth2 Setup
 
 1. Go to Google Cloud Console.

@@ -1,0 +1,15 @@
+services:
+  prepaid-credit-tracker:
+    image: ghcr.io/asit18/prepaid-credit-tracker:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${APP_PORT:-8090}:8080"
+    env_file:
+      - .env
+    environment:
+      SERVER_PORT: 8080
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"

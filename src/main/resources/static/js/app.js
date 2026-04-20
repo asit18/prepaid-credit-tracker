@@ -2,7 +2,7 @@ function addContactRow() {
     const container = document.querySelector('[data-contacts]');
     if (!container) return;
     const row = document.createElement('div');
-    row.className = 'inline card';
+    row.className = 'inline contact-row';
     row.innerHTML = `
         <div><label>Name</label><input name="contactName" required></div>
         <div><label>Email</label><input name="contactEmail" type="email"></div>
@@ -11,6 +11,55 @@ function addContactRow() {
         <button type="button" class="red small" onclick="this.closest('.inline').remove()">Remove</button>
     `;
     container.appendChild(row);
+}
+
+function customerResultMarkup(customer, targetPath) {
+    const params = new URLSearchParams({ customerId: customer.id });
+    const basePath = targetPath || '/customers/manage';
+    const phone = customer.phone || 'No phone';
+    return `
+        <a class="customer-result" href="${basePath}?${params.toString()}">
+            <strong>${escapeHtml(customer.name)}</strong>
+            <span>${escapeHtml(phone)}</span>
+        </a>
+    `;
+}
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+let customerSearchTimer;
+function searchCustomers(input) {
+    const results = document.querySelector('[data-customer-results]');
+    if (!results) return;
+    const term = input.value.trim();
+    clearTimeout(customerSearchTimer);
+    if (term.length < 1) {
+        results.innerHTML = '<p class="empty">Start typing a customer name or phone number.</p>';
+        return;
+    }
+    customerSearchTimer = setTimeout(async () => {
+        results.innerHTML = '<p class="empty">Searching...</p>';
+        try {
+            const response = await fetch(`/api/v1/customers?search=${encodeURIComponent(term)}`, {
+                headers: { Accept: 'application/json' }
+            });
+            if (!response.ok) throw new Error('Search failed');
+            const customers = await response.json();
+            const targetPath = input.dataset.customerTarget || '/customers/manage';
+            results.innerHTML = customers.length
+                ? customers.map((customer) => customerResultMarkup(customer, targetPath)).join('')
+                : '<p class="empty">No matching customers found.</p>';
+        } catch (error) {
+            results.innerHTML = '<p class="empty">Customer search is unavailable right now.</p>';
+        }
+    }, 180);
 }
 
 function syncCreditControls() {
@@ -59,6 +108,22 @@ function syncCreditControls() {
     }
 }
 
+function syncProductControls() {
+    const productSelect = document.querySelector('[data-product-select]');
+    if (productSelect) {
+        document.querySelectorAll('[data-product-panel]').forEach((panel) => {
+            panel.classList.toggle('hidden', panel.dataset.productPanel !== productSelect.value);
+        });
+    }
+    document.querySelectorAll('[data-product-panel]').forEach((panel) => {
+        const selectedAction = panel.querySelector('input[name^="productAction"]:checked');
+        if (!selectedAction) return;
+        panel.querySelectorAll('[data-product-action-panel]').forEach((actionPanel) => {
+            actionPanel.classList.toggle('hidden', actionPanel.dataset.productActionPanel !== selectedAction.value);
+        });
+    });
+}
+
 document.addEventListener('submit', (event) => {
     const form = event.target;
     if (form.matches('[data-confirm]') && !confirm(form.dataset.confirm)) {
@@ -71,6 +136,9 @@ document.addEventListener('submit', (event) => {
 document.addEventListener('change', (event) => {
     if (event.target.matches('[data-credit-product], input[name="creditAction"]')) {
         syncCreditControls();
+    }
+    if (event.target.matches('[data-product-select], input[name^="productAction"]')) {
+        syncProductControls();
     }
 });
 
@@ -95,15 +163,16 @@ document.addEventListener('click', (event) => {
 });
 
 document.addEventListener('input', (event) => {
-    if (!event.target.matches('[data-search-customers]')) return;
-    const term = event.target.value.toLowerCase();
-    document.querySelectorAll('[data-customer-option]').forEach((row) => {
-        row.classList.toggle('hidden', !row.textContent.toLowerCase().includes(term));
-    });
+    if (event.target.matches('[data-customer-typeahead]')) {
+        searchCustomers(event.target);
+    }
 });
 
 setTimeout(() => {
     document.querySelectorAll('.toast').forEach((toast) => toast.remove());
 }, 3500);
 
-document.addEventListener('DOMContentLoaded', syncCreditControls);
+document.addEventListener('DOMContentLoaded', () => {
+    syncCreditControls();
+    syncProductControls();
+});

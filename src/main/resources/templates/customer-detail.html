@@ -10,7 +10,7 @@
             <p th:if="${!customer.active}" class="alert error">This customer is inactive.</p>
             <p><strong>Email:</strong> <span th:text="${customer.email ?: 'Not provided'}"></span></p>
             <p><strong>Phone:</strong> <span th:text="${customer.phone ?: 'Not provided'}"></span></p>
-            <p><strong>Address:</strong> <span th:text="${customer.address ?: 'Not provided'}"></span></p>
+            <p><strong>Notes:</strong> <span th:text="${customer.notes ?: 'Not provided'}"></span></p>
             <p>
                 <a class="btn secondary" th:href="@{/customers/{id}/edit(id=${customer.id})}">Edit Customer</a>
             </p>

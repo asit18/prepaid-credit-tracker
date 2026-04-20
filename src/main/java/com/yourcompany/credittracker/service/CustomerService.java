@@ -20,9 +20,15 @@ public class CustomerService {
     @Transactional(readOnly = true)
     public List<Customer> search(String search) {
         if (search == null || search.isBlank()) {
-            return customerRepository.findByActiveTrueOrderByNameAsc();
+            return List.of();
         }
-        return customerRepository.findTop10ByActiveTrueAndNameContainingIgnoreCaseOrderByNameAsc(search.trim());
+        String term = search.trim();
+        return customerRepository.findTop10ByActiveTrueAndNameContainingIgnoreCaseOrActiveTrueAndPhoneContainingOrderByNameAsc(term, term);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Customer> allActive() {
+        return customerRepository.findByActiveTrueOrderByNameAsc();
     }
 
     @Transactional(readOnly = true)
@@ -56,7 +62,7 @@ public class CustomerService {
 
     private void apply(Customer customer, CustomerRequest request) {
         customer.setName(request.name().trim());
-        customer.setAddress(request.address());
+        customer.setNotes(request.notes());
         customer.setEmail(request.email());
         customer.setPhone(request.phone().trim());
         for (ContactRequest contactRequest : request.safeContacts()) {

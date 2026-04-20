@@ -11,7 +11,7 @@
             <label>Name</label><input name="name" th:value="${customer.name}" required>
             <label>Email</label><input name="email" type="email" th:value="${customer.email}">
             <label>Phone</label><input name="phone" th:value="${customer.phone}" required>
-            <label>Address</label><textarea name="address" th:text="${customer.address}"></textarea>
+            <label>Notes</label><textarea name="notes" th:text="${customer.notes}"></textarea>
             <h2>Additional Contacts</h2>
             <div data-contacts>
                 <div class="inline card" th:each="contact : ${customer.contacts}">

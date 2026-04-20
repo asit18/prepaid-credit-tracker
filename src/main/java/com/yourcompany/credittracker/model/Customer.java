@@ -27,7 +27,7 @@ public class Customer {
     private String phone;
 
     @Column(columnDefinition = "TEXT")
-    private String address;
+    private String notes;
 
     private String email;
 

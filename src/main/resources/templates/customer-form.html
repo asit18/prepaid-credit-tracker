@@ -1,19 +1,39 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head('Enroll Customer')}"></head>
+<head th:replace="~{fragments :: head('Add Customer')}"></head>
 <body>
 <div class="app">
     <aside th:replace="~{fragments :: sidebar}"></aside>
     <main class="content">
-        <h1>Enroll Customer</h1>
+        <h1>Add Customer</h1>
         <div th:if="${error}" class="alert error" th:text="${error}"></div>
-        <form class="card" th:action="@{/customers}" method="post">
-            <label>Name</label><input name="name" required>
-            <label>Email</label><input name="email" type="email">
-            <label>Phone</label><input name="phone" required>
-            <label>Address</label><textarea name="address"></textarea>
+        <section class="card" style="margin-bottom:18px">
+            <form th:action="@{/customers/new}" method="get" class="lookup-form">
+                <label>Find existing customer</label>
+                <div class="inline-search">
+                    <input data-customer-typeahead data-customer-target="/customers/new" placeholder="Type name or phone number" autocomplete="off">
+                    <button class="secondary">Search</button>
+                </div>
+            </form>
+            <div class="typeahead-results mobile-stack" data-customer-results>
+                <p class="empty">Search if this customer already exists. Selecting a match will fill the form below.</p>
+            </div>
+        </section>
+        <form class="card" th:action="@{${customerFormAction}}" method="post">
+            <label>Name</label><input name="name" th:value="${customer?.name}" required>
+            <label>Email</label><input name="email" type="email" th:value="${customer?.email}">
+            <label>Phone</label><input name="phone" th:value="${customer?.phone}" required>
+            <label>Notes</label><textarea name="notes" th:text="${customer?.notes}"></textarea>
             <h2>Additional Contacts</h2>
-            <div data-contacts></div>
+            <div data-contacts>
+                <div class="inline contact-row" th:each="contact : ${customer?.contacts}">
+                    <div><label>Name</label><input name="contactName" th:value="${contact.name}" required></div>
+                    <div><label>Email</label><input name="contactEmail" type="email" th:value="${contact.email}"></div>
+                    <div><label>Phone</label><input name="contactPhone" th:value="${contact.phone}"></div>
+                    <div><label>Relationship</label><input name="contactRelationship" th:value="${contact.relationship}"></div>
+                    <button type="button" class="red small" onclick="this.closest('.inline').remove()">Remove</button>
+                </div>
+            </div>
             <button type="button" class="secondary" onclick="addContactRow()">Add Contact</button>
             <button type="submit" class="green">Save Customer <span class="spinner"></span></button>
         </form>

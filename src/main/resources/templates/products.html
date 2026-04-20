@@ -21,50 +21,65 @@
         <section class="card" style="margin-top:18px">
             <h2>Products</h2>
             <p th:if="${#lists.isEmpty(products)}" class="empty">No products yet. Add the first product above.</p>
-            <div class="table-wrap" th:if="${!#lists.isEmpty(products)}"><table>
-                <tr><th>Name</th><th>Unit</th><th>Current Price</th><th>Status</th><th>Actions</th></tr>
-                <tr th:each="product : ${products}">
-                    <td>
-                        <strong th:text="${product.name}"></strong>
-                        <div class="muted" th:text="${product.description}"></div>
-                    </td>
-                    <td th:text="${product.unitLabel}"></td>
-                    <td th:text="${@appDateTime.formatPrice(@productService.currentPriceValue(product))}"></td>
-                    <td><span class="pill" th:text="${product.active ? 'Active' : 'Inactive'}"></span></td>
-                    <td>
-                        <details>
-                            <summary>Edit Product</summary>
-                            <form th:action="@{/products/{id}(id=${product.id})}" method="post" class="mobile-stack">
-                                <label>Name</label><input name="name" th:value="${product.name}" required>
-                                <label>Description</label><textarea name="description" th:text="${product.description}"></textarea>
-                                <label>Unit Label</label><input name="unitLabel" th:value="${product.unitLabel}" required>
-                                <label>Status</label><select name="active"><option value="true" th:selected="${product.active}">Active</option><option value="false" th:selected="${!product.active}">Inactive</option></select>
-                                <button class="small">Save <span class="spinner"></span></button>
-                            </form>
-                        </details>
+            <div th:if="${!#lists.isEmpty(products)}" class="product-control">
+                <label>Product</label>
+                <select data-product-select>
+                    <option th:each="product : ${products}"
+                            th:value="${product.id}"
+                            th:text="${product.name + ' - ' + @appDateTime.formatPrice(@productService.currentPriceValue(product)) + ' / ' + product.unitLabel + ' - ' + (product.active ? 'Active' : 'Inactive')}">
+                    </option>
+                </select>
+
+                <section th:each="product, iter : ${products}"
+                         class="product-panel"
+                         th:classappend="${iter.index == 0} ? '' : ' hidden'"
+                         th:data-product-panel="${product.id}">
+                    <div class="section-heading">
+                        <div>
+                            <h2 th:text="${product.name}">Product</h2>
+                            <p class="muted" th:text="${(product.description ?: 'No description') + ' | ' + product.unitLabel + ' | ' + (product.active ? 'Active' : 'Inactive')}"></p>
+                        </div>
                         <form th:if="${product.active}" th:action="@{/products/{id}/delete(id=${product.id})}" method="post" data-confirm="Deactivate this product? Transaction history will remain available.">
                             <button class="red small">Delete Product</button>
                         </form>
-                        <details>
-                            <summary>Update Price</summary>
-                            <form th:action="@{/products/{id}/prices(id=${product.id})}" method="post" data-confirm="Confirm this product price update?">
-                                <label>New Price</label><input name="pricePerUnit" type="number" min="0.01" step="0.01" required>
-                                <label>Effective Date</label><input name="effectiveFrom" type="date" required>
-                                <button class="green small">Save Price <span class="spinner"></span></button>
-                            </form>
-                        </details>
-                        <details>
-                            <summary>Price History</summary>
-                            <div class="table-wrap"><table>
-                                <tr><th>Effective From</th><th>Price</th><th>Created By</th></tr>
-                                <tr th:each="price : ${@productService.priceHistory(product.id)}">
-                                    <td th:text="${@appDateTime.formatDate(price.effectiveFrom)}"></td><td th:text="${@appDateTime.formatPrice(price.pricePerUnit)}"></td><td th:text="${price.createdBy}"></td>
-                                </tr>
-                            </table></div>
-                        </details>
-                    </td>
-                </tr>
-            </table></div>
+                    </div>
+
+                    <div class="action-radios" role="radiogroup" aria-label="Product action">
+                        <label><input type="radio" th:name="${'productAction' + product.id}" value="EDIT" checked> Edit</label>
+                        <label><input type="radio" th:name="${'productAction' + product.id}" value="PRICE"> Update Price</label>
+                        <label><input type="radio" th:name="${'productAction' + product.id}" value="HISTORY"> Price History</label>
+                    </div>
+
+                    <div class="action-panel" data-product-action-panel="EDIT">
+                        <form th:action="@{/products/{id}(id=${product.id})}" method="post" class="mobile-stack">
+                            <label>Name</label><input name="name" th:value="${product.name}" required>
+                            <label>Description</label><textarea name="description" th:text="${product.description}"></textarea>
+                            <label>Unit Label</label><input name="unitLabel" th:value="${product.unitLabel}" required>
+                            <label>Status</label><select name="active"><option value="true" th:selected="${product.active}">Active</option><option value="false" th:selected="${!product.active}">Inactive</option></select>
+                            <button class="small">Save <span class="spinner"></span></button>
+                        </form>
+                    </div>
+
+                    <div class="action-panel hidden" data-product-action-panel="PRICE">
+                        <form th:action="@{/products/{id}/prices(id=${product.id})}" method="post" data-confirm="Confirm this product price update?">
+                            <label>New Price</label><input name="pricePerUnit" type="number" min="0.01" step="0.01" required>
+                            <label>Effective Date</label><input name="effectiveFrom" type="date" required>
+                            <button class="green small">Save Price <span class="spinner"></span></button>
+                        </form>
+                    </div>
+
+                    <div class="action-panel hidden" data-product-action-panel="HISTORY">
+                        <div class="table-wrap"><table>
+                            <tr><th>Effective From</th><th>Price</th><th>Created By</th></tr>
+                            <tr th:each="price : ${@productService.priceHistory(product.id)}">
+                                <td th:text="${@appDateTime.formatDate(price.effectiveFrom)}"></td>
+                                <td th:text="${@appDateTime.formatPrice(price.pricePerUnit)}"></td>
+                                <td th:text="${price.createdBy}"></td>
+                            </tr>
+                        </table></div>
+                    </div>
+                </section>
+            </div>
         </section>
     </main>
 </div>

@@ -2,10 +2,7 @@ package com.yourcompany.credittracker.controller;
 
 import com.yourcompany.credittracker.dto.*;
 import com.yourcompany.credittracker.model.Customer;
-import com.yourcompany.credittracker.model.Product;
 import com.yourcompany.credittracker.model.TransactionType;
-import com.yourcompany.credittracker.repository.CustomerRepository;
-import com.yourcompany.credittracker.repository.ProductRepository;
 import com.yourcompany.credittracker.service.*;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -22,7 +19,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,8 +32,6 @@ public class WebController {
     private final AdminUserService adminUserService;
     private final AppDateTimeService appDateTimeService;
     private final AppSettingService appSettingService;
-    private final CustomerRepository customerRepository;
-    private final ProductRepository productRepository;
 
     @Value("${app.auth.google-enabled:false}")
     private boolean googleEnabled;
@@ -54,28 +48,27 @@ public class WebController {
     }
 
     @GetMapping("/")
-    String dashboard(Model model) {
-        LocalDateTime start = LocalDate.now().atStartOfDay();
-        LocalDateTime tomorrow = LocalDate.now().plusDays(1).atStartOfDay();
-        model.addAttribute("customerCount", customerRepository.findByActiveTrueOrderByNameAsc().size());
-        model.addAttribute("productCount", productRepository.findByActiveTrueOrderByNameAsc().size());
-        model.addAttribute("issuedToday", reportService.summary(LocalDate.now(), LocalDate.now(), null, null, TransactionType.PURCHASE).get("purchased"));
-        long lowBalances = customerRepository.findByActiveTrueOrderByNameAsc().stream()
-                .flatMap(c -> creditService.balances(c.getId()).stream())
-                .filter(b -> b.balance().compareTo(BigDecimal.TEN) < 0)
-                .count();
-        model.addAttribute("lowBalanceCount", lowBalances);
+    String dashboard() {
         return "dashboard";
     }
 
     @GetMapping("/customers/new")
-    String newCustomer() {
+    String newCustomer(Model model, @RequestParam(required = false) Long customerId) {
+        model.addAttribute("customerFormTitle", "Add Customer");
+        if (customerId != null) {
+            model.addAttribute("customer", customerService.get(customerId));
+            model.addAttribute("customerFormAction", "/customers/" + customerId);
+            model.addAttribute("editingCustomer", true);
+        } else {
+            model.addAttribute("customerFormAction", "/customers");
+            model.addAttribute("editingCustomer", false);
+        }
         return "customer-form";
     }
 
     @PostMapping("/customers")
     String createCustomer(@RequestParam String name,
-                          @RequestParam(required = false) String address,
+                          @RequestParam(required = false) String notes,
                           @RequestParam(required = false) String email,
                           @RequestParam String phone,
                           @RequestParam(required = false, name = "contactName") List<String> contactNames,
@@ -85,7 +78,7 @@ public class WebController {
                           RedirectAttributes redirectAttributes) {
         List<ContactRequest> contacts = contacts(contactNames, contactEmails, contactPhones, relationships);
         try {
-            Customer customer = customerService.create(new CustomerRequest(name, address, email, phone, contacts));
+            Customer customer = customerService.create(new CustomerRequest(name, notes, email, phone, contacts));
             redirectAttributes.addFlashAttribute("toast", "Customer saved");
             return "redirect:/customers/" + customer.getId();
         } catch (IllegalArgumentException ex) {
@@ -97,13 +90,16 @@ public class WebController {
     @GetMapping("/customers/{id}/edit")
     String editCustomer(@PathVariable Long id, Model model) {
         model.addAttribute("customer", customerService.get(id));
-        return "customer-edit";
+        model.addAttribute("customerFormTitle", "Add Customer");
+        model.addAttribute("customerFormAction", "/customers/" + id);
+        model.addAttribute("editingCustomer", true);
+        return "customer-form";
     }
 
     @PostMapping("/customers/{id}")
     String updateCustomer(@PathVariable Long id,
                           @RequestParam String name,
-                          @RequestParam(required = false) String address,
+                          @RequestParam(required = false) String notes,
                           @RequestParam(required = false) String email,
                           @RequestParam String phone,
                           @RequestParam(required = false, name = "contactName") List<String> contactNames,
@@ -112,7 +108,7 @@ public class WebController {
                           @RequestParam(required = false, name = "contactRelationship") List<String> relationships,
                           RedirectAttributes redirectAttributes) {
         try {
-            customerService.update(id, new CustomerRequest(name, address, email, phone,
+            customerService.update(id, new CustomerRequest(name, notes, email, phone,
                     contacts(contactNames, contactEmails, contactPhones, relationships)));
             redirectAttributes.addFlashAttribute("toast", "Customer updated");
             return "redirect:/customers/" + id;
@@ -130,13 +126,19 @@ public class WebController {
     }
 
     @GetMapping("/customers/manage")
-    String customerLookup(Model model, @RequestParam(required = false) Long customerId) {
+    String customerLookup(Model model,
+                          @RequestParam(required = false) Long customerId,
+                          @RequestParam(required = false) String search) {
         model.addAttribute("products", productService.active());
-        model.addAttribute("customers", customerService.search(""));
         if (customerId != null) {
+            model.addAttribute("search", "");
+            model.addAttribute("customers", List.of());
             model.addAttribute("customer", customerService.get(customerId));
             model.addAttribute("balances", creditService.balances(customerId));
             model.addAttribute("transactions", creditService.history(customerId, PageRequest.of(0, 50)).getContent());
+        } else {
+            model.addAttribute("search", search);
+            model.addAttribute("customers", customerService.search(search));
         }
         return "customer-manage";
     }
@@ -210,7 +212,7 @@ public class WebController {
                    @RequestParam(required = false) TransactionType type) {
         LocalDate effectiveFrom = from == null ? LocalDate.now() : from;
         LocalDate effectiveTo = to == null ? LocalDate.now() : to;
-        model.addAttribute("customers", customerService.search(""));
+        model.addAttribute("customers", customerService.allActive());
         model.addAttribute("products", productService.all());
         model.addAttribute("types", TransactionType.values());
         model.addAttribute("from", effectiveFrom);

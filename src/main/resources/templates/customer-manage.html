@@ -8,17 +8,30 @@
         <h1>Customer Lookup & Credit Management</h1>
         <div th:if="${error}" class="alert error" th:text="${error}"></div>
         <section class="card">
-            <label>Search customer</label>
-            <input data-search-customers placeholder="Type a customer name">
-            <div class="mobile-stack" style="margin-top:12px">
-                <a data-customer-option th:each="c : ${customers}" class="btn secondary" th:href="@{/customers/manage(customerId=${c.id})}" th:text="${c.name}"></a>
+            <form th:action="@{/customers/manage}" method="get" class="lookup-form">
+                <label>Search customer</label>
+                <div class="inline-search">
+                <input name="search" data-customer-typeahead th:value="${search}" placeholder="Type name or phone number" autocomplete="off">
+                    <button class="secondary">Search</button>
+                </div>
+            </form>
+            <div class="typeahead-results mobile-stack" data-customer-results>
+                <p th:if="${customer != null}" class="empty">Customer selected. Search again to choose another customer.</p>
+                <p th:if="${customer == null && (search == null || #strings.isEmpty(search))}" class="empty">Start typing a customer name or phone number.</p>
+                <p th:if="${search != null && !#strings.isEmpty(search) && #lists.isEmpty(customers)}" class="empty">No matching customers found.</p>
+                <a data-customer-option th:each="c : ${customers}" class="customer-result" th:href="@{/customers/manage(customerId=${c.id})}">
+                    <strong th:text="${c.name}"></strong>
+                    <span th:text="${c.phone}"></span>
+                </a>
             </div>
         </section>
         <div th:if="${customer != null}">
             <section class="card" style="margin-top:18px">
-                <h2 th:text="${customer.name}">Customer</h2>
+                <div class="section-heading">
+                    <h2 th:text="${customer.name}">Customer</h2>
+                    <a class="btn secondary small" th:href="@{/customers/{id}/edit(id=${customer.id})}">Edit Customer</a>
+                </div>
                 <p class="muted" th:text="${(customer.email ?: 'No email') + ' | ' + (customer.phone ?: 'No phone')}"></p>
-                <p th:text="${customer.address ?: 'No address'}"></p>
                 <p th:if="${#lists.isEmpty(customer.contacts)}" class="empty">No contacts yet.</p>
                 <ul><li th:each="contact : ${customer.contacts}" th:text="${contact.name + ' ' + (contact.phone ?: '') + ' ' + (contact.relationship ?: '')}"></li></ul>
             </section>

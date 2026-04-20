@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS customers (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     phone VARCHAR(80) NOT NULL,
-    address TEXT,
+    notes TEXT,
     email VARCHAR(255),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS customers (
 );
 
 CREATE INDEX IF NOT EXISTS idx_customer_name ON customers (name);
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS notes TEXT;
 ALTER TABLE customers ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
 UPDATE customers SET phone = '' WHERE phone IS NULL;
 ALTER TABLE customers ALTER COLUMN phone SET NOT NULL;

@@ -1,5 +1,6 @@
 package com.yourcompany.credittracker.repository;
 
+import com.yourcompany.credittracker.dto.ProductBalanceSummary;
 import com.yourcompany.credittracker.model.CreditTransaction;
 import com.yourcompany.credittracker.model.Customer;
 import com.yourcompany.credittracker.model.Product;
@@ -26,6 +27,18 @@ public interface CreditTransactionRepository extends JpaRepository<CreditTransac
 
     @Query("select coalesce(sum(t.units), 0) from CreditTransaction t where t.customer = :customer and t.product = :product")
     BigDecimal balanceFor(@Param("customer") Customer customer, @Param("product") Product product);
+
+    @Query("""
+            select new com.yourcompany.credittracker.dto.ProductBalanceSummary(
+                t.product.id,
+                coalesce(sum(t.units), 0),
+                max(t.transactionDate)
+            )
+            from CreditTransaction t
+            where t.customer = :customer
+            group by t.product.id
+            """)
+    List<ProductBalanceSummary> summarizeBalancesByCustomer(@Param("customer") Customer customer);
 
     @Query("select coalesce(sum(t.units), 0) from CreditTransaction t where t.transactionDate >= :from and t.transactionDate < :to and t.transactionType = :type")
     BigDecimal sumUnitsByTypeBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to, @Param("type") TransactionType type);

@@ -1,6 +1,7 @@
 package com.yourcompany.credittracker.service;
 
 import com.yourcompany.credittracker.dto.BalanceRow;
+import com.yourcompany.credittracker.dto.ProductBalanceSummary;
 import com.yourcompany.credittracker.dto.TransactionRequest;
 import com.yourcompany.credittracker.model.*;
 import com.yourcompany.credittracker.repository.CreditTransactionRepository;
@@ -13,8 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,9 +44,9 @@ public class CreditService {
             if (request.units() == null || request.units().signum() <= 0) {
                 throw new IllegalArgumentException("Credits to add must be greater than zero");
             }
-            BigDecimal units = wholeUnits(request.units());
+            BigDecimal units = normalizeUnits(request.units());
             if (units.signum() <= 0) {
-                throw new IllegalArgumentException("Credits to add must round down to at least one whole credit");
+                throw new IllegalArgumentException("Credits to add must be greater than zero");
             }
             tx.setUnits(units);
             tx.setPricePerUnitAtTime(currentPrice.getPricePerUnit());
@@ -55,9 +58,9 @@ public class CreditService {
             if (request.transactionType() == TransactionType.CONSUMPTION && units.signum() > 0) {
                 units = units.negate();
             }
-            units = wholeUnits(units);
+            units = normalizeUnits(units);
             if (units.compareTo(BigDecimal.ZERO) == 0) {
-                throw new IllegalArgumentException("Units must round down to at least one whole credit");
+                throw new IllegalArgumentException("Units must be non-zero");
             }
             tx.setUnits(units);
             tx.setPricePerUnitAtTime(currentPrice.getPricePerUnit());
@@ -65,25 +68,30 @@ public class CreditService {
         return transactionRepository.save(tx);
     }
 
-    private BigDecimal wholeUnits(BigDecimal units) {
-        BigDecimal wholeMagnitude = units.abs().setScale(0, RoundingMode.FLOOR);
-        return units.signum() < 0 ? wholeMagnitude.negate() : wholeMagnitude;
+    private BigDecimal normalizeUnits(BigDecimal units) {
+        return units.setScale(2, RoundingMode.HALF_UP);
     }
 
     @Transactional(readOnly = true)
     public List<BalanceRow> balances(Long customerId) {
         Customer customer = customerService.get(customerId);
-        return productService.active().stream().map(product -> {
-            BigDecimal balance = transactionRepository.balanceFor(customer, product);
-            LocalDateTime last = transactionRepository.findByCustomerOrderByTransactionDateDesc(customer, Pageable.unpaged())
-                    .stream()
-                    .filter(t -> t.getProduct().getId().equals(product.getId()))
-                    .map(CreditTransaction::getTransactionDate)
-                    .max(Comparator.naturalOrder())
-                    .orElse(null);
-            return new BalanceRow(product.getId(), product.getName(), product.getUnitLabel(),
-                    productService.currentPriceValue(product), balance, product.getColorHexCode(), last);
-        }).toList();
+        Map<Long, ProductBalanceSummary> summaries = transactionRepository.summarizeBalancesByCustomer(customer).stream()
+                .collect(Collectors.toMap(ProductBalanceSummary::productId, Function.identity()));
+
+        return productService.all().stream()
+                .filter(product -> {
+                    ProductBalanceSummary summary = summaries.get(product.getId());
+                    BigDecimal balance = summary == null ? BigDecimal.ZERO : summary.balance();
+                    return product.isActive() || balance.signum() != 0;
+                })
+                .map(product -> {
+                    ProductBalanceSummary summary = summaries.get(product.getId());
+                    BigDecimal balance = summary == null ? BigDecimal.ZERO : summary.balance();
+                    LocalDateTime last = summary == null ? null : summary.lastTransactionDate();
+                    return new BalanceRow(product.getId(), product.getName(), product.getUnitLabel(),
+                            productService.currentPriceValue(product), balance, product.getColorHexCode(), last);
+                })
+                .toList();
     }
 
     @Transactional(readOnly = true)

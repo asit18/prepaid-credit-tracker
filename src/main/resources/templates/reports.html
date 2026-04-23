@@ -14,26 +14,11 @@
                 <div><label>Product</label><select name="productId"><option value="">All</option><option th:each="p : ${products}" th:value="${p.id}" th:text="${p.name}" th:selected="${selectedProductId != null and selectedProductId == p.id}"></option></select></div>
                 <div><label>Type</label><select name="type"><option value="">All</option><option th:each="t : ${types}" th:value="${t}" th:text="${t}" th:selected="${selectedType != null and selectedType == t}"></option></select></div>
                 <button>Search <span class="spinner"></span></button>
-                <a class="btn secondary" th:href="@{/reports.csv}">Export CSV</a>
+                <a class="btn secondary" th:href="@{/reports.csv(from=${from},to=${to},customerId=${selectedCustomerId},productId=${selectedProductId},type=${selectedType})}">Export CSV</a>
             </form>
         </section>
-        <div class="grid" style="margin-top:18px">
-            <section class="card"><div class="muted">Total Credits Purchased</div><div class="stat positive" th:text="${@appDateTime.formatUnits(summary.purchased)}">0</div></section>
-            <section class="card"><div class="muted">Total Units Consumed</div><div class="stat negative" th:text="${@appDateTime.formatUnits(summary.consumed)}">0</div></section>
-            <section class="card"><div class="muted">Net Balance</div><div class="stat" th:text="${@appDateTime.formatUnits(summary.net)}">0</div></section>
-            <section class="card"><div class="muted">Rows</div><div class="stat" th:text="${rowsPage.totalElements}">0</div></section>
-        </div>
         <section class="card" style="margin-top:18px">
             <h2>Transactions</h2>
-            <p th:if="${#lists.isEmpty(rows)}" class="empty">No transactions match the selected filters.</p>
-            <div class="table-wrap" th:if="${!#lists.isEmpty(rows)}"><table>
-                <tr><th>Customer</th><th>Product</th><th>Date</th><th>Type</th><th>Units</th><th>Amount Paid</th><th>Price/Unit</th><th>Balance After</th><th>Created By</th></tr>
-                <tr th:each="row : ${rows}">
-                    <td th:text="${row.customer}"></td><td th:text="${row.product}"></td><td th:text="${@appDateTime.format(row.date)}"></td><td th:text="${row.type}"></td>
-                    <td th:class="${row.units.signum() < 0 ? 'negative' : 'positive'}" th:text="${@appDateTime.formatUnits(row.units)}"></td>
-                    <td th:text="${row.amountPaid ?: '-'}"></td><td th:text="${@appDateTime.formatPrice(row.pricePerUnit)}"></td><td th:text="${row.balanceAfter}"></td><td th:text="${row.createdBy}"></td>
-                </tr>
-            </table></div>
             <div class="pagination" th:if="${rowsPage.totalPages > 1}">
                 <a class="btn secondary small" th:if="${rowsPage.hasPrevious()}"
                    th:href="@{/reports(from=${from},to=${to},customerId=${selectedCustomerId},productId=${selectedProductId},type=${selectedType},page=${rowsPage.number - 1},size=${rowsPage.size})}">Previous</a>
@@ -41,6 +26,15 @@
                 <a class="btn secondary small" th:if="${rowsPage.hasNext()}"
                    th:href="@{/reports(from=${from},to=${to},customerId=${selectedCustomerId},productId=${selectedProductId},type=${selectedType},page=${rowsPage.number + 1},size=${rowsPage.size})}">Next</a>
             </div>
+            <p th:if="${#lists.isEmpty(rows)}" class="empty">No transactions match the selected filters.</p>
+            <div class="table-wrap" th:if="${!#lists.isEmpty(rows)}"><table>
+                <tr><th>Customer</th><th>Product</th><th>Date</th><th>Type</th><th>Credits</th><th>Balance After</th><th>Created By</th></tr>
+                <tr th:each="row : ${rows}">
+                    <td th:text="${row.customer}"></td><td th:text="${row.product}"></td><td th:text="${@appDateTime.format(row.date)}"></td><td th:text="${row.type}"></td>
+                    <td th:class="${row.units.signum() < 0 ? 'negative' : 'positive'}" th:text="${@appDateTime.formatUnits(row.units)}"></td>
+                    <td th:text="${@appDateTime.formatUnits(row.balanceAfter)}"></td><td th:text="${row.createdBy}"></td>
+                </tr>
+            </table></div>
         </section>
     </main>
 </div>

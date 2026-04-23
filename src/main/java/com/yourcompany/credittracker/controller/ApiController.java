@@ -26,8 +26,10 @@ public class ApiController {
     private final ReportService reportService;
 
     @GetMapping("/customers")
-    List<Customer> customers(@RequestParam(required = false) String search) {
-        return customerService.search(search);
+    List<CustomerLookupRow> customers(@RequestParam(required = false) String search) {
+        return customerService.search(search).stream()
+                .map(customer -> new CustomerLookupRow(customer.getId(), customer.getName(), customer.getPhone()))
+                .toList();
     }
 
     @PostMapping("/customers")

@@ -41,6 +41,6 @@ public class AppDateTimeService {
     }
 
     public String formatUnits(BigDecimal value) {
-        return value == null ? "0" : value.setScale(0, RoundingMode.FLOOR).toPlainString();
+        return value == null ? "0.00" : value.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 }

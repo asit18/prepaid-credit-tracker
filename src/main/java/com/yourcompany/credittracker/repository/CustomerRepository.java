@@ -12,7 +12,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     @EntityGraph(attributePaths = "contacts")
     Optional<Customer> findById(Long id);
 
-    @EntityGraph(attributePaths = "contacts")
     List<Customer> findTop10ByActiveTrueAndNameContainingIgnoreCaseOrActiveTrueAndPhoneContainingOrderByNameAsc(String name, String phone);
 
     @EntityGraph(attributePaths = "contacts")

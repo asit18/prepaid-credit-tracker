@@ -66,20 +66,20 @@ function syncCreditControls() {
     const selectedProduct = document.querySelector('input[name="selectedProduct"]:checked');
     if (selectedProduct) {
         const selected = selectedProduct;
-        const balance = selected ? Number.parseInt(selected.dataset.balance || '0', 10) : 0;
+        const balance = selected ? Number.parseFloat(selected.dataset.balance || '0') : 0;
         const unitLabel = selected ? selected.dataset.unitLabel : 'credits';
         document.querySelectorAll('[data-selected-product-id]').forEach((input) => {
             input.value = selected.value;
         });
         document.querySelectorAll('[data-balance-limit]').forEach((node) => {
-            node.textContent = `Current balance: ${balance} ${unitLabel}. Negative balances are allowed.`;
+            node.textContent = `Current balance: ${balance.toFixed(2)} ${unitLabel}. Negative balances are allowed.`;
         });
         document.querySelectorAll('[data-adjustment-limit]').forEach((node) => {
-            node.textContent = `Current balance: ${balance} ${unitLabel}. Use a negative value to subtract or positive to add.`;
+            node.textContent = `Current balance: ${balance.toFixed(2)} ${unitLabel}. Use a negative value to subtract or positive to add.`;
         });
         document.querySelectorAll('[data-balance-warning]').forEach((node) => {
             node.textContent = balance < 0
-                ? `Warning: balance is below zero at ${balance} ${unitLabel}.`
+                ? `Warning: balance is below zero at ${balance.toFixed(2)} ${unitLabel}.`
                 : '';
         });
     }

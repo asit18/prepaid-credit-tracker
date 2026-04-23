@@ -49,7 +49,7 @@ github.com/asit18/prepaid-credit-tracker
 Private deployment repo:
 
 ```text
-github.com/asit18/noelani-deployment
+github.com/asit18/sample-business-deployment
 ```
 
 Public repo contains source code only:
@@ -81,32 +81,32 @@ businesses/
 Create the private deployment repo as:
 
 ```text
-asit18/noelani-deployment
+asit18/sample-business-deployment
 ```
 
 Recommended initial contents:
 
 ```text
 businesses/
-  noelani/
+  sample-business/
     docker-compose.yml
     Caddyfile
     env.production.example
     backup-db.sh
 .github/
   workflows/
-    deploy-noelani.yml
+    deploy-sample-business.yml
 README.md
 ```
 
 Copy these templates from the public source repo:
 
 ```text
-deploy/digitalocean/docker-compose.prod.yml -> businesses/noelani/docker-compose.yml
-deploy/digitalocean/Caddyfile.example -> businesses/noelani/Caddyfile
-deploy/digitalocean/env.production.example -> businesses/noelani/env.production.example
-deploy/digitalocean/backup-db.sh -> businesses/noelani/backup-db.sh
-deploy/digitalocean/deploy-workflow.template.yml -> .github/workflows/deploy-noelani.yml
+deploy/digitalocean/docker-compose.prod.yml -> businesses/sample-business/docker-compose.yml
+deploy/digitalocean/Caddyfile.example -> businesses/sample-business/Caddyfile
+deploy/digitalocean/env.production.example -> businesses/sample-business/env.production.example
+deploy/digitalocean/backup-db.sh -> businesses/sample-business/backup-db.sh
+deploy/digitalocean/deploy-workflow.template.yml -> .github/workflows/deploy-sample-business.yml
 ```
 
 Never commit:

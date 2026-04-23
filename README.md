@@ -142,7 +142,7 @@ The public repo publishes Docker images to GitHub Container Registry using:
 .github/workflows/docker-publish.yml
 ```
 
-Use the private `noelani-deployment` repo pattern from the deployment track for real business domains, server IPs, SSH keys, and production `.env` files.
+Use the private `sample-business-deployment` repo pattern from the deployment track for real business domains, server IPs, SSH keys, and production `.env` files.
 
 ## Google OAuth2 Setup
 

@@ -10,7 +10,7 @@ This folder contains production deployment templates for a DigitalOcean Droplet 
 - `server-bootstrap.sh`: installs Docker, Caddy, firewall, and PostgreSQL client on Ubuntu.
 - `backup-db.sh`: daily logical PostgreSQL backup script.
 - `deploy-over-ssh.sh`: server-side deployment command.
-- `deploy-workflow.template.yml`: GitHub Actions SSH deployment workflow for the private `noelani-deployment` repo.
+- `deploy-workflow.template.yml`: GitHub Actions SSH deployment workflow for the private `sample-business-deployment` repo.
 
 ## One-Time DigitalOcean Setup
 
@@ -75,7 +75,7 @@ For a public small-business deployment, prefer making the package public and kee
 
 ## GitHub Actions Deployment
 
-Use `deploy-workflow.template.yml` in the private `noelani-deployment` repo:
+Use `deploy-workflow.template.yml` in the private `sample-business-deployment` repo:
 
 ```text
 .github/workflows/deploy-production.yml

@@ -31,14 +31,11 @@ public class AdminUserService {
     @Transactional
     public void bootstrapAdmins() {
         if (adminUserRepository.count() == 0) {
-            addAdmin(seedEmail, "Seed Admin");
+            addAdmin(seedEmail, "Seed Admin", null, AdminRole.EMPLOYEE);
         }
         if (localAdminEmail != null && !localAdminEmail.isBlank()) {
-            AdminUser localAdmin = addAdmin(localAdminEmail, "Local Admin");
+            AdminUser localAdmin = addAdmin(localAdminEmail, "Local Admin", localAdminPassword, AdminRole.OWNER);
             localAdmin.setRole(AdminRole.OWNER);
-            if (localAdminPassword != null && !localAdminPassword.isBlank()) {
-                localAdmin.setPasswordHash(passwordEncoder.encode(localAdminPassword));
-            }
         }
     }
 
@@ -67,11 +64,16 @@ public class AdminUserService {
 
     @Transactional
     public AdminUser addAdmin(String email, String displayName) {
-        return addAdmin(email, displayName, AdminRole.EMPLOYEE);
+        return addAdmin(email, displayName, null, AdminRole.EMPLOYEE);
     }
 
     @Transactional
     public AdminUser addAdmin(String email, String displayName, AdminRole role) {
+        return addAdmin(email, displayName, null, role);
+    }
+
+    @Transactional
+    public AdminUser addAdmin(String email, String displayName, String password, AdminRole role) {
         String normalized = email == null ? "" : email.trim().toLowerCase();
         if (normalized.isBlank()) {
             throw new IllegalArgumentException("Email is required");
@@ -81,6 +83,9 @@ public class AdminUserService {
             user.setEmail(normalized);
             user.setDisplayName(displayName == null || displayName.isBlank() ? normalized : displayName);
             user.setRole(role == null ? AdminRole.EMPLOYEE : role);
+            if (password != null && !password.isBlank()) {
+                user.setPasswordHash(passwordEncoder.encode(validatePassword(password)));
+            }
             user.setActive(true);
             return adminUserRepository.save(user);
         });
@@ -100,5 +105,23 @@ public class AdminUserService {
                 .orElseThrow(() -> new NotFoundException("Admin user not found"));
         user.setActive(active);
         return user;
+    }
+
+    @Transactional
+    public AdminUser updatePassword(Long id, String password, String confirmPassword) {
+        if (password == null || !password.equals(confirmPassword)) {
+            throw new IllegalArgumentException("Passwords do not match");
+        }
+        AdminUser user = adminUserRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Admin user not found"));
+        user.setPasswordHash(passwordEncoder.encode(validatePassword(password)));
+        return user;
+    }
+
+    private String validatePassword(String password) {
+        if (password == null || password.length() < 8) {
+            throw new IllegalArgumentException("Password must be at least 8 characters");
+        }
+        return password;
     }
 }

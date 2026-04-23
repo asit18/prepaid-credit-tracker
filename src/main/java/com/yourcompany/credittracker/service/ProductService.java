@@ -15,10 +15,14 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
+    private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("^#[0-9A-F]{6}$");
+
     private final ProductRepository productRepository;
     private final ProductPriceRepository productPriceRepository;
 
@@ -103,6 +107,7 @@ public class ProductService {
         product.setName(request.name().trim());
         product.setDescription(request.description());
         product.setUnitLabel(request.unitLabel().trim());
+        product.setColorHexCode(normalizeColorHexCode(request.colorHexCode()));
         product.setActive(request.active());
     }
 
@@ -117,5 +122,13 @@ public class ProductService {
 
     private BigDecimal normalizePrice(BigDecimal price) {
         return price.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private String normalizeColorHexCode(String colorHexCode) {
+        String normalized = colorHexCode == null ? "" : colorHexCode.trim().toUpperCase(Locale.ROOT);
+        if (!HEX_COLOR_PATTERN.matcher(normalized).matches()) {
+            throw new IllegalArgumentException("Color hex code must be in the format #RRGGBB");
+        }
+        return normalized;
     }
 }

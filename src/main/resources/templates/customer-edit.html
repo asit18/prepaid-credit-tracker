@@ -5,7 +5,7 @@
 <div class="app">
     <aside th:replace="~{fragments :: sidebar}"></aside>
     <main class="content">
-        <h1>Edit Customer</h1>
+        <div th:replace="~{fragments :: topbar('Edit Customer')}"></div>
         <div th:if="${error}" class="alert error" th:text="${error}"></div>
         <form class="card" th:action="@{/customers/{id}(id=${customer.id})}" method="post">
             <label>Name</label><input name="name" th:value="${customer.name}" required>

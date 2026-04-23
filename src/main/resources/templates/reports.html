@@ -5,7 +5,7 @@
 <div class="app">
     <aside th:replace="~{fragments :: sidebar}"></aside>
     <main class="content">
-        <h1>Transaction History</h1>
+        <div th:replace="~{fragments :: topbar('Transaction History')}"></div>
         <section class="card">
             <form th:action="@{/reports}" method="get" class="inline">
                 <div><label>From</label><input name="from" type="date" th:value="${from}"></div>

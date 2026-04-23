@@ -5,7 +5,7 @@
 <div class="app">
     <aside th:replace="~{fragments :: sidebar}"></aside>
     <main class="content">
-        <h1>Security</h1>
+        <div th:replace="~{fragments :: topbar('Security')}"></div>
         <div th:if="${error}" class="alert error" th:text="${error}"></div>
         <section class="card">
             <h2>Multi-Factor Authentication</h2>

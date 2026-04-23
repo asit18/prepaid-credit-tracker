@@ -5,12 +5,14 @@
 <div class="app">
     <aside th:replace="~{fragments :: sidebar}"></aside>
     <main class="content">
-        <h1>Admin User Management</h1>
+        <div th:replace="~{fragments :: topbar('Admin User Management')}"></div>
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
         <section class="card">
             <h2>Add Admin</h2>
-            <form th:action="@{/admins}" method="post" class="inline">
-                <div><label>Email</label><input name="email" type="email" required></div>
-                <div><label>Display Name</label><input name="displayName"></div>
+            <form th:action="@{/admins}" method="post" class="inline" autocomplete="off">
+                <div><label>Email</label><input name="email" type="email" value="" autocomplete="off" required></div>
+                <div><label>Display Name</label><input name="displayName" value="" autocomplete="off"></div>
+                <div><label>Password</label><input name="password" type="password" value="" autocomplete="new-password" minlength="8" required></div>
                 <div><label>Role</label><select name="role"><option th:each="role : ${roles}" th:value="${role}" th:text="${role}"></option></select></div>
                 <button class="green">Add Admin <span class="spinner"></span></button>
             </form>
@@ -36,8 +38,11 @@
                             <input type="hidden" name="active" th:value="${!admin.active}">
                             <button class="small" th:classappend="${admin.active ? ' red' : ' green'}" th:text="${admin.active ? 'Deactivate' : 'Reactivate'}"></button>
                         </form>
-                        <form th:action="@{/admins/{id}/password-reset(id=${admin.id})}" method="post" data-confirm="Trigger password reset email for this admin?">
-                            <button class="small secondary">Change Password</button>
+                        <button type="button" class="small secondary" th:attr="data-toggle-target=${'password-form-' + admin.id}">Change Password</button>
+                        <form th:action="@{/admins/{id}/password(id=${admin.id})}" method="post" class="hidden admin-password-form" th:id="${'password-form-' + admin.id}">
+                            <label>New Password</label><input name="password" type="password" minlength="8" required>
+                            <label>Confirm Password</label><input name="confirmPassword" type="password" minlength="8" required>
+                            <button class="small">Save Password <span class="spinner"></span></button>
                         </form>
                     </td>
                 </tr>

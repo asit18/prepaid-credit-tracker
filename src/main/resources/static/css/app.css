@@ -41,6 +41,14 @@ a { color: inherit; }
 .nav a:hover { background: var(--navy-soft); }
 .content { padding: 28px; overflow-x: hidden; }
 .topbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 22px; }
+.topbar-user {
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--white);
+    color: var(--muted);
+    font-weight: 700;
+}
 .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
 .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .tile-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
@@ -174,6 +182,9 @@ th { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spa
     background: #f8fafc;
     border: 1px solid var(--line);
 }
+.product-color-block {
+    border-left: 6px solid var(--product-color, var(--navy));
+}
 .balance-chip span {
     font-weight: 800;
 }
@@ -189,6 +200,37 @@ th { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spa
 .credit-control {
     display: grid;
     gap: 14px;
+}
+.product-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.product-option {
+    display: grid;
+    gap: 6px;
+    min-width: 170px;
+    margin: 0;
+    padding: 12px 14px;
+    border: 2px solid var(--product-color, var(--line));
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--product-color, #123456) 12%, white);
+    cursor: pointer;
+}
+.product-option input {
+    width: auto;
+    margin: 0;
+}
+.product-option-name {
+    font-weight: 800;
+}
+.product-option small {
+    color: var(--muted);
+    font-weight: 700;
+}
+.product-option:has(input:checked) {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--product-color, #123456) 22%, white);
+    background: color-mix(in srgb, var(--product-color, #123456) 18%, white);
 }
 .action-radios {
     display: flex;
@@ -218,6 +260,10 @@ th { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spa
     border: 1px solid var(--line);
     border-radius: 8px;
     background: #f9fafb;
+}
+.admin-password-form {
+    margin-top: 10px;
+    min-width: 220px;
 }
 .toast {
     position: fixed;

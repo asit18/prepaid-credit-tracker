@@ -24,6 +24,9 @@ public class Product {
     @Column(name = "unit_label", nullable = false)
     private String unitLabel = "units";
 
+    @Column(name = "color_hex_code", nullable = false, length = 7)
+    private String colorHexCode = "#123456";
+
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 

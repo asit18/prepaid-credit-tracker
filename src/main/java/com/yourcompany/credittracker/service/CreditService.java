@@ -38,11 +38,13 @@ public class CreditService {
         tx.setTransactionDate(LocalDateTime.now());
 
         if (request.transactionType() == TransactionType.PURCHASE) {
-            if (request.amountPaid() == null || request.amountPaid().signum() <= 0) {
-                throw new IllegalArgumentException("Amount paid must be greater than zero");
+            if (request.units() == null || request.units().signum() <= 0) {
+                throw new IllegalArgumentException("Credits to add must be greater than zero");
             }
-            BigDecimal units = request.amountPaid().divide(currentPrice.getPricePerUnit(), 0, RoundingMode.FLOOR);
-            tx.setAmountPaid(request.amountPaid());
+            BigDecimal units = wholeUnits(request.units());
+            if (units.signum() <= 0) {
+                throw new IllegalArgumentException("Credits to add must round down to at least one whole credit");
+            }
             tx.setUnits(units);
             tx.setPricePerUnitAtTime(currentPrice.getPricePerUnit());
         } else {
@@ -60,17 +62,7 @@ public class CreditService {
             tx.setUnits(units);
             tx.setPricePerUnitAtTime(currentPrice.getPricePerUnit());
         }
-        ensureBalanceDoesNotGoNegative(customer, product, tx.getUnits());
         return transactionRepository.save(tx);
-    }
-
-    private void ensureBalanceDoesNotGoNegative(Customer customer, Product product, BigDecimal transactionUnits) {
-        BigDecimal currentBalance = transactionRepository.balanceFor(customer, product);
-        BigDecimal resultingBalance = currentBalance.add(transactionUnits);
-        if (resultingBalance.signum() < 0) {
-            throw new IllegalArgumentException("Credit balance is low to complete this transaction. Current balance is "
-                    + currentBalance + " " + product.getUnitLabel() + ".");
-        }
     }
 
     private BigDecimal wholeUnits(BigDecimal units) {
@@ -90,7 +82,7 @@ public class CreditService {
                     .max(Comparator.naturalOrder())
                     .orElse(null);
             return new BalanceRow(product.getId(), product.getName(), product.getUnitLabel(),
-                    productService.currentPriceValue(product), balance, last);
+                    productService.currentPriceValue(product), balance, product.getColorHexCode(), last);
         }).toList();
     }
 

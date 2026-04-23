@@ -5,7 +5,7 @@
 <div class="app">
     <aside th:replace="~{fragments :: sidebar}"></aside>
     <main class="content">
-        <h1 th:text="${customer.name}">Customer</h1>
+        <div th:replace="~{fragments :: topbar(${customer.name})}"></div>
         <section class="card">
             <p th:if="${!customer.active}" class="alert error">This customer is inactive.</p>
             <p><strong>Email:</strong> <span th:text="${customer.email ?: 'Not provided'}"></span></p>

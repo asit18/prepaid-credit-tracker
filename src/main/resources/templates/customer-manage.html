@@ -5,7 +5,7 @@
 <div class="app">
     <aside th:replace="~{fragments :: sidebar}"></aside>
     <main class="content">
-        <h1>Customer Lookup & Credit Management</h1>
+        <div th:replace="~{fragments :: topbar('Customer Lookup & Credit Management')}"></div>
         <div th:if="${error}" class="alert error" th:text="${error}"></div>
         <section class="card">
             <form th:action="@{/customers/manage}" method="get" class="lookup-form">
@@ -39,30 +39,30 @@
                     <span> | </span>
                     <span th:text="${#lists.isEmpty(customer.contacts) ? 'No contact' : customer.contacts[0].name}"></span>
                 </p>
-                <p th:if="${#lists.isEmpty(customer.contacts)}" class="empty">No contacts yet.</p>
-                <ul><li th:each="contact : ${customer.contacts}" th:text="${contact.name + ' ' + (contact.phone ?: '') + ' ' + (contact.relationship ?: '')}"></li></ul>
+                <p th:if="${customer.notes != null && !#strings.isEmpty(customer.notes)}" th:text="${customer.notes}"></p>
+                <p th:if="${customer.notes == null || #strings.isEmpty(customer.notes)}" class="empty">No notes added.</p>
             </section>
             <section class="card" style="margin-top:18px">
                 <h2>Credit Summary</h2>
-                <div class="balance-summary">
-                    <div th:each="b : ${balances}" th:class="${b.balance.compareTo(T(java.math.BigDecimal).TEN) <= 0 ? 'balance-chip balance-warning' : 'balance-chip'}">
-                        <strong th:text="${b.productName}"></strong>
-                        <span th:text="${@appDateTime.formatUnits(b.balance) + ' ' + b.unitLabel}"></span>
-                        <small th:text="${'Unit: ' + b.unitLabel}"></small>
-                    </div>
-                </div>
-
                 <div class="credit-control">
-                    <label>Product</label>
-                    <select data-credit-product>
-                        <option th:each="b : ${balances}"
-                                th:value="${b.productId}"
-                                th:data-price="${@appDateTime.formatPrice(b.currentPrice)}"
-                                th:data-balance="${@appDateTime.formatUnits(b.balance)}"
-                                th:data-unit-label="${b.unitLabel}"
-                                th:text="${b.productName + ' - ' + @appDateTime.formatUnits(b.balance) + ' ' + b.unitLabel}">
-                        </option>
-                    </select>
+                    <div class="product-selector" role="radiogroup" aria-label="Select product">
+                        <label th:each="b, iter : ${balances}"
+                               class="product-option"
+                               th:style="${'--product-color:' + b.colorHexCode + ';'}">
+                            <input type="radio"
+                                   name="selectedProduct"
+                                   th:value="${b.productId}"
+                                   th:data-price="${@appDateTime.formatPrice(b.currentPrice)}"
+                                   th:data-balance="${@appDateTime.formatUnits(b.balance)}"
+                                   th:data-unit-label="${b.unitLabel}"
+                                   th:checked="${iter.index == 0}">
+                            <span class="product-option-name" th:text="${b.productName}"></span>
+                            <small th:text="${@appDateTime.formatUnits(b.balance) + ' ' + b.unitLabel}"></small>
+                            <small th:if="${b.balance.signum() < 0}" class="negative" th:text="${'Warning: balance is below zero at ' + @appDateTime.formatUnits(b.balance) + ' ' + b.unitLabel}"></small>
+                        </label>
+                    </div>
+
+                    <p class="muted negative" data-balance-warning></p>
 
                     <div class="action-radios" role="radiogroup" aria-label="Credit action">
                         <label><input type="radio" name="creditAction" value="CONSUMPTION" checked> Record Consumption</label>
@@ -82,11 +82,10 @@
                     </div>
 
                     <div class="action-panel hidden" data-action-panel="PURCHASE">
-                        <form th:action="@{/customers/{id}/transactions(id=${customer.id})}" method="post" data-confirm="Confirm this payment credit?">
+                        <form th:action="@{/customers/{id}/transactions(id=${customer.id})}" method="post" data-confirm="Confirm these credits?">
                             <input type="hidden" name="productId" data-selected-product-id>
                             <input type="hidden" name="transactionType" value="PURCHASE">
-                            <label>Amount paid</label><input name="amountPaid" type="number" min="0.01" step="0.01" required>
-                            <p class="muted">Current price: <span data-current-price></span> per unit</p>
+                            <label>Credits to add</label><input name="units" type="number" min="1" step="1" required>
                             <label>Notes</label><input name="notes">
                             <button class="small">Confirm <span class="spinner"></span></button>
                         </form>

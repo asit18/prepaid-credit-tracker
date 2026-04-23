@@ -63,40 +63,24 @@ function searchCustomers(input) {
 }
 
 function syncCreditControls() {
-    const productSelect = document.querySelector('[data-credit-product]');
-    if (productSelect) {
-        const selected = productSelect.selectedOptions[0];
+    const selectedProduct = document.querySelector('input[name="selectedProduct"]:checked');
+    if (selectedProduct) {
+        const selected = selectedProduct;
         const balance = selected ? Number.parseInt(selected.dataset.balance || '0', 10) : 0;
-        const maxDeduction = Math.max(balance, 0);
         const unitLabel = selected ? selected.dataset.unitLabel : 'credits';
         document.querySelectorAll('[data-selected-product-id]').forEach((input) => {
-            input.value = productSelect.value;
-        });
-        document.querySelectorAll('[data-current-price]').forEach((node) => {
-            node.textContent = selected ? selected.dataset.price : '';
-        });
-        document.querySelectorAll('[data-consumption-units]').forEach((input) => {
-            input.max = String(maxDeduction);
-            input.disabled = maxDeduction < 1;
-            if (Number.parseInt(input.value || '0', 10) > maxDeduction) {
-                input.value = '';
-            }
-        });
-        document.querySelectorAll('[data-adjustment-units]').forEach((input) => {
-            input.min = maxDeduction > 0 ? String(-maxDeduction) : '1';
-            if (Number.parseInt(input.value || '0', 10) < Number.parseInt(input.min, 10)) {
-                input.value = '';
-            }
+            input.value = selected.value;
         });
         document.querySelectorAll('[data-balance-limit]').forEach((node) => {
-            node.textContent = maxDeduction > 0
-                ? `You can consume up to ${maxDeduction} ${unitLabel}.`
-                : `No consumption allowed. Balance is already zero.`;
+            node.textContent = `Current balance: ${balance} ${unitLabel}. Negative balances are allowed.`;
         });
         document.querySelectorAll('[data-adjustment-limit]').forEach((node) => {
-            node.textContent = maxDeduction > 0
-                ? `Negative adjustments can subtract up to ${maxDeduction} ${unitLabel}.`
-                : `Negative adjustments are not allowed. Balance is already zero.`;
+            node.textContent = `Current balance: ${balance} ${unitLabel}. Use a negative value to subtract or positive to add.`;
+        });
+        document.querySelectorAll('[data-balance-warning]').forEach((node) => {
+            node.textContent = balance < 0
+                ? `Warning: balance is below zero at ${balance} ${unitLabel}.`
+                : '';
         });
     }
 
@@ -106,6 +90,20 @@ function syncCreditControls() {
             panel.classList.toggle('hidden', panel.dataset.actionPanel !== selectedAction.value);
         });
     }
+}
+
+function clearInteractiveFields(container) {
+    if (!container) return;
+    container.querySelectorAll('input, textarea, select').forEach((field) => {
+        if (field.type === 'hidden' || field.type === 'radio' || field.type === 'checkbox' || field.disabled) {
+            return;
+        }
+        if (field.tagName === 'SELECT') {
+            field.selectedIndex = 0;
+            return;
+        }
+        field.value = '';
+    });
 }
 
 function syncProductControls() {
@@ -134,15 +132,27 @@ document.addEventListener('submit', (event) => {
 });
 
 document.addEventListener('change', (event) => {
-    if (event.target.matches('[data-credit-product], input[name="creditAction"]')) {
+    if (event.target.matches('input[name="selectedProduct"], input[name="creditAction"]')) {
+        clearInteractiveFields(document.querySelector('.credit-control'));
         syncCreditControls();
     }
     if (event.target.matches('[data-product-select], input[name^="productAction"]')) {
+        clearInteractiveFields(document.querySelector(`[data-product-panel="${event.target.closest('[data-product-panel]')?.dataset.productPanel || document.querySelector('[data-product-select]')?.value}"]`));
         syncProductControls();
     }
 });
 
 document.addEventListener('click', (event) => {
+    const passwordToggle = event.target.closest('[data-toggle-target]');
+    if (passwordToggle) {
+        const target = document.getElementById(passwordToggle.dataset.toggleTarget);
+        if (target) {
+            target.classList.toggle('hidden');
+            clearInteractiveFields(target);
+        }
+        return;
+    }
+
     const toggle = event.target.closest('[data-menu-toggle]');
     if (toggle) {
         const open = !document.body.classList.contains('menu-open');

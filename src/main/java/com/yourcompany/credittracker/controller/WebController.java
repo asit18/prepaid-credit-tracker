@@ -210,15 +210,23 @@ public class WebController {
                        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate effectiveFrom,
                        Authentication authentication,
                        RedirectAttributes redirectAttributes) {
-        productService.createWithInitialPrice(request, new PriceRequest(pricePerUnit, effectiveFrom), CurrentUser.email(authentication));
-        redirectAttributes.addFlashAttribute("toast", "Product saved");
+        try {
+            productService.createWithInitialPrice(request, new PriceRequest(pricePerUnit, effectiveFrom), CurrentUser.email(authentication));
+            redirectAttributes.addFlashAttribute("toast", "Product saved");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
         return "redirect:/products";
     }
 
     @PostMapping("/products/{id}")
     String updateProduct(@PathVariable Long id, ProductRequest request, RedirectAttributes redirectAttributes) {
-        productService.update(id, request);
-        redirectAttributes.addFlashAttribute("toast", "Product updated");
+        try {
+            productService.update(id, request);
+            redirectAttributes.addFlashAttribute("toast", "Product updated");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
         return "redirect:/products";
     }
 
@@ -291,9 +299,14 @@ public class WebController {
 
     @PostMapping("/admins")
     String addAdmin(@RequestParam String email, @RequestParam(required = false) String displayName,
+                    @RequestParam(required = false) String password,
                     @RequestParam(defaultValue = "EMPLOYEE") AdminRole role, RedirectAttributes redirectAttributes) {
-        adminUserService.addAdmin(email, displayName, role);
-        redirectAttributes.addFlashAttribute("toast", "Admin added");
+        try {
+            adminUserService.addAdmin(email, displayName, password, role);
+            redirectAttributes.addFlashAttribute("toast", "Admin added");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
         return "redirect:/admins";
     }
 
@@ -311,10 +324,17 @@ public class WebController {
         return "redirect:/admins";
     }
 
-    @PostMapping("/admins/{id}/password-reset")
-    String passwordReset(@PathVariable Long id, Authentication authentication, RedirectAttributes redirectAttributes) {
-        passwordResetService.triggerReset(id, CurrentUser.email(authentication));
-        redirectAttributes.addFlashAttribute("toast", "Password reset email triggered");
+    @PostMapping("/admins/{id}/password")
+    String updateAdminPassword(@PathVariable Long id,
+                               @RequestParam String password,
+                               @RequestParam String confirmPassword,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            adminUserService.updatePassword(id, password, confirmPassword);
+            redirectAttributes.addFlashAttribute("toast", "Password updated");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
         return "redirect:/admins";
     }
 

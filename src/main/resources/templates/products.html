@@ -5,12 +5,14 @@
 <div class="app">
     <aside th:replace="~{fragments :: sidebar}"></aside>
     <main class="content">
-        <h1>Product Management</h1>
+        <div th:replace="~{fragments :: topbar('Product Management')}"></div>
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
         <section class="card">
             <h2>Add Product</h2>
             <form th:action="@{/products}" method="post" class="inline">
                 <div><label>Name</label><input name="name" required></div>
                 <div><label>Unit Label</label><input name="unitLabel" placeholder="units, hours, sessions" required></div>
+                <div><label>Color</label><input name="colorHexCode" type="color" value="#123456" required></div>
                 <div><label>Initial Price</label><input name="pricePerUnit" type="number" min="0.01" step="0.01" required></div>
                 <div><label>Effective Date</label><input name="effectiveFrom" type="date" required></div>
                 <div><label>Description</label><input name="description"></div>
@@ -37,7 +39,7 @@
                     <div class="section-heading">
                         <div>
                             <h2 th:text="${product.name}">Product</h2>
-                            <p class="muted" th:text="${(product.description ?: 'No description') + ' | ' + product.unitLabel + ' | ' + (product.active ? 'Active' : 'Inactive')}"></p>
+                            <p class="muted" th:text="${(product.description ?: 'No description') + ' | ' + product.unitLabel + ' | ' + product.colorHexCode + ' | ' + (product.active ? 'Active' : 'Inactive')}"></p>
                         </div>
                         <form th:if="${product.active}" th:action="@{/products/{id}/delete(id=${product.id})}" method="post" data-confirm="Deactivate this product? Transaction history will remain available.">
                             <button class="red small">Delete Product</button>
@@ -55,6 +57,7 @@
                             <label>Name</label><input name="name" th:value="${product.name}" required>
                             <label>Description</label><textarea name="description" th:text="${product.description}"></textarea>
                             <label>Unit Label</label><input name="unitLabel" th:value="${product.unitLabel}" required>
+                            <label>Color</label><input name="colorHexCode" type="color" th:value="${product.colorHexCode}" required>
                             <label>Status</label><select name="active"><option value="true" th:selected="${product.active}">Active</option><option value="false" th:selected="${!product.active}">Inactive</option></select>
                             <button class="small">Save <span class="spinner"></span></button>
                         </form>

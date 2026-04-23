@@ -6,6 +6,10 @@
     <title th:text="${title} + ' | ' + ${businessName}">Prepaid Credit Tracker</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
+<div class="topbar" th:fragment="topbar(title)">
+    <h1 th:text="${title}">Page</h1>
+    <div class="topbar-user" th:if="${currentAdminName != null}" th:text="${currentAdminName}">Admin User</div>
+</div>
 <aside class="sidebar" th:fragment="sidebar">
     <div class="mobile-header">
         <div class="brand" th:text="${businessName}">Prepaid Credit Tracker</div>

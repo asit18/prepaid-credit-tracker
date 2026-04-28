@@ -1,5 +1,6 @@
 package com.yourcompany.credittracker.service;
 
+import com.yourcompany.credittracker.dto.CreditsBalanceReportRow;
 import com.yourcompany.credittracker.dto.ReportRow;
 import com.yourcompany.credittracker.model.CreditTransaction;
 import com.yourcompany.credittracker.model.TransactionType;
@@ -65,5 +66,11 @@ public class ReportService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal net = txs.stream().map(CreditTransaction::getUnits).reduce(BigDecimal.ZERO, BigDecimal::add);
         return Map.of("purchased", purchased, "consumed", consumed, "net", net);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CreditsBalanceReportRow> creditsBalanceReport(LocalDate date) {
+        LocalDate reportDate = date == null ? LocalDate.now() : date;
+        return transactionRepository.creditsBalanceReport(reportDate.plusDays(1).atStartOfDay());
     }
 }

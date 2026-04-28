@@ -159,7 +159,8 @@ public class WebController {
     @GetMapping("/customers/manage")
     String customerLookup(Model model,
                           @RequestParam(required = false) Long customerId,
-                          @RequestParam(required = false) String search) {
+                          @RequestParam(required = false) String search,
+                          @RequestParam(required = false) Long selectedProductId) {
         model.addAttribute("products", productService.active());
         if (customerId != null) {
             model.addAttribute("search", "");
@@ -167,6 +168,7 @@ public class WebController {
             model.addAttribute("customer", customerService.get(customerId));
             model.addAttribute("balances", creditService.balances(customerId));
             model.addAttribute("transactions", creditService.history(customerId, PageRequest.of(0, 50)).getContent());
+            model.addAttribute("selectedProductId", selectedProductId);
             CreditTransaction lastTransaction = creditService.lastTransaction(customerId);
             model.addAttribute("lastVisitDate", lastTransaction == null ? null : lastTransaction.getTransactionDate());
         } else {
@@ -195,7 +197,7 @@ public class WebController {
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }
-        return "redirect:/customers/manage?customerId=" + id;
+        return "redirect:/customers/manage?customerId=" + id + "&selectedProductId=" + request.productId();
     }
 
     @GetMapping("/products")
@@ -287,6 +289,26 @@ public class WebController {
             response.getWriter().printf("\"%s\",\"%s\",%s,%s,%s,%s,%s,%s,\"%s\"%n",
                     row.customer(), row.product(), appDateTimeService.format(row.date()), row.type(), row.units(), row.amountPaid(),
                     row.pricePerUnit(), row.balanceAfter(), row.createdBy());
+        }
+    }
+
+    @GetMapping("/credits-balance")
+    String creditsBalance(Model model,
+                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        model.addAttribute("selectedDate", date == null ? LocalDate.now() : date);
+        return "credits-balance";
+    }
+
+    @GetMapping("/credits-balance.csv")
+    void creditsBalanceCsv(HttpServletResponse response,
+                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws IOException {
+        LocalDate reportDate = date == null ? LocalDate.now() : date;
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=credits-balance-" + reportDate + ".csv");
+        response.getWriter().println("Date,Customer,Product,Credits");
+        for (CreditsBalanceReportRow row : reportService.creditsBalanceReport(reportDate)) {
+            response.getWriter().printf("%s,\"%s\",\"%s\",%s%n",
+                    reportDate, row.customerName(), row.productName(), appDateTimeService.formatUnits(row.credits()));
         }
     }
 

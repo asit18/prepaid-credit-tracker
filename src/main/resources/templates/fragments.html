@@ -26,6 +26,7 @@
         <a th:href="@{/customers/manage}">Credits</a>
         <a sec:authorize="hasRole('OWNER')" th:href="@{/products}">Products</a>
         <a th:href="@{/reports}">Transaction History</a>
+        <a th:href="@{/credits-balance}">Credits Balance</a>
         <a sec:authorize="hasRole('OWNER')" th:href="@{/admins}">Admins</a>
         <a sec:authorize="hasRole('OWNER')" th:href="@{/settings}">Settings</a>
         <a sec:authorize="hasRole('OWNER')" th:href="@{/settings/security}">Security</a>

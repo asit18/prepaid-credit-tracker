@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Credits Balance')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="content">
+        <div th:replace="~{fragments :: topbar('Credits Balance')}"></div>
+        <section class="card">
+            <form th:action="@{/credits-balance.csv}" method="get" class="inline">
+                <div>
+                    <label>Date</label>
+                    <input name="date" type="date" th:value="${selectedDate}" required>
+                </div>
+                <button>Download <span class="spinner"></span></button>
+            </form>
+        </section>
+    </main>
+</div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

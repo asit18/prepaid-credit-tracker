@@ -55,7 +55,7 @@
                                    th:data-price="${@appDateTime.formatPrice(b.currentPrice)}"
                                    th:data-balance="${@appDateTime.formatUnits(b.balance)}"
                                    th:data-unit-label="${b.unitLabel}"
-                                   th:checked="${iter.index == 0}">
+                                   th:checked="${selectedProductId != null ? selectedProductId == b.productId : iter.index == 0}">
                             <span class="product-option-name" th:text="${b.productName}"></span>
                             <small th:text="${@appDateTime.formatUnits(b.balance) + ' ' + b.unitLabel}"></small>
                             <small th:if="${b.balance.signum() < 0}" class="negative" th:text="${'Warning: balance is below zero at ' + @appDateTime.formatUnits(b.balance) + ' ' + b.unitLabel}"></small>

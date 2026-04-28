@@ -129,6 +129,9 @@ document.addEventListener('submit', (event) => {
         return;
     }
     form.classList.add('loading');
+    if (form.matches('[data-download-form]')) {
+        setTimeout(() => form.classList.remove('loading'), 1500);
+    }
 });
 
 document.addEventListener('change', (event) => {
